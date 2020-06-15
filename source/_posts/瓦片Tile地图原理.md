@@ -22,7 +22,7 @@ categories:
 
    5. 图片格式：jpg[有损压缩率高、不透明]   png[无损、透明]
 
-![瓦片原理图1](/img/瓦片原理图1.png)
+![瓦片原理图1](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图1.png)
 
 ### 2. 为什么使用瓦片地图
 
@@ -38,7 +38,7 @@ categories:
 
 ​	通常找软件生成去吧。。。基本原理过程就是：
 
-![瓦片原理图2](/img/瓦片原理图2.png)
+![瓦片原理图2](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图2.png)
 
 ​	**第一点**：地球是个近似球体。要转为平面的地图需要投影。或者直接使用正射影像当瓦片用咯。
 
@@ -60,15 +60,15 @@ categories:
 >
 > **百度XYZ**：Z从1开始，在最高级就把地图分为四块瓦片；XY的原点在经度为0纬度位0的位置，X从左向右，Y从下向上。	
 
-![瓦片原理图3](/img/瓦片原理图3.png)
+![瓦片原理图3](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图3.png)
 
 ​	编好了号，瓦片做好了，就是一堆文件夹里放着图片。直观点就是下图：
 
-​	文件夹名字表示级别： ![瓦片原理图4](/img/瓦片原理图4.png)
+​	文件夹名字表示级别： ![瓦片原理图4](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图4.png)
 
-​	点开21级文件夹，文件夹名表示x：![瓦片原理图5](/img/瓦片原理图5.png)
+​	点开21级文件夹，文件夹名表示x：![瓦片原理图5](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图5.png)
 
-​	再打开文件夹就是图片了,名字就是y：![瓦片原理图6](/img/瓦片原理图6.png)
+​	再打开文件夹就是图片了,名字就是y：![瓦片原理图6](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图6.png)
 
 ​	*.kml文件里面存了写坐标信息有需要可以读取，这里先不管它。
 
@@ -115,7 +115,7 @@ var view = new SceneView({
 
 ​	 我们天地图官网上打开地图时候F12里找到的请求：参数就有x、y、l（leve），再看上面的代码getTileUrl函数，帮我们把算出来的三个参数替换到url中去请求到对应的瓦片，tag是天地图有好几个瓦片服务地址任意取一个数，暂时可以不管。
 
-![瓦片原理图6](/img/瓦片原理图8.png)
+![瓦片原理图6](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图8.png)
 
 ​	url搞定了剩下的就是造个layer造个map加到view中。
 
@@ -217,4 +217,4 @@ var Tile = new MyCustomTileLayer({
 
 ​	这样底图图层就创建出来了，接下来就可以直接使用：
 
-![瓦片原理图7](/img/瓦片原理图7.png)
+![瓦片原理图7](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图7.png)

@@ -447,7 +447,7 @@ var file = document.getElementById("file");
 
 #### 四、结果
 
-![JS加载shp](/img/JS加载shp.jpg)
+![JS加载shp](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/JS加载shp.jpg)
 
 #### 资料
 

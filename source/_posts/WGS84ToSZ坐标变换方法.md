@@ -20,19 +20,19 @@ categories:
 
 以地球质心(总椭球的几何中心)为原点的大地坐标系。通常分为地心空间直角坐标系(以x，y，z为其坐标元素)和地心大地坐标系(以B，L，H为其坐标元素)。
 
-椭球长半轴:![](/img/长半轴.gif)
+椭球长半轴:![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/长半轴.gif)
 
-椭球扁率:![](/img/扁率.gif)
+椭球扁率:![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/扁率.gif)
 
-椭球短半轴：![](/img/短半轴.png)
+椭球短半轴：![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/短半轴.png)
 
-椭球第一偏心率 ：![](/img/第一偏心率.png)
+椭球第一偏心率 ：![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/第一偏心率.png)
 
-椭球第二偏心率 ：![](/img/第二偏心率.png)
+椭球第二偏心率 ：![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/第二偏心率.png)
 
 卯酉圈曲率半径N：子午圈曲率半径M：
 
-![](/img/曲率半径.png)
+![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/曲率半径.png)
 
 补充：
 
@@ -50,7 +50,7 @@ categories:
 
 ​	参考公式：
 
-​	![BLH2XYX](/img/BLH2XYX.jpg)
+​	![BLH2XYX](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/BLH2XYX.jpg)
 
 ​	PS:这里WGS84为地心坐标系而北京54为参心坐标系，（**个人认为因为他们空间直角坐标系的轴方向一致，所以此处只需要添加XYZ的坐标偏移参数无需其他是三个旋转参数以及一个尺度参数**），计算完后需要给XYZ加上常量，具体数值如下:
 
@@ -60,13 +60,13 @@ categories:
 
 ​	参考方法:
 
-​	![XYZ2BLH](/img/XYZ2BLH.jpg)
+​	![XYZ2BLH](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH.jpg)
 
 ​	求解方法：
 
 ​	1.迭代法：
 
-​	取B初值为:![](/img/B初值.jpg)
+​	取B初值为:![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/B初值.jpg)
 
 ​	C#代码实现：
 
@@ -110,7 +110,7 @@ H = H1;
 
 ​	参考公式：
 
-​	![XYZ2BLH2](/img/XYZ2BLH2.jpg)
+​	![XYZ2BLH2](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH2.jpg)
 
 ```c#
 //输入XYZ
@@ -148,13 +148,13 @@ double H = r / Math.Cos(B) - N;
 
 ​	参考公式：
 
-​	![高斯正算x](/img/高斯正算x.png)
+​	![高斯正算x](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/高斯正算x.png)
 
-​	![高斯正算y](/img/高斯正算y.png)
+​	![高斯正算y](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/高斯正算y.png)
 
-​	![](/img/高斯正算参数1.png)
+​	![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/高斯正算参数1.png)
 
-![高斯正算参数2](/img/高斯正算参数2.png)
+![高斯正算参数2](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/高斯正算参数2.png)
 
 ​	C#代码实现
 
@@ -202,7 +202,7 @@ y = y + 500000;
 
 ​	6)转为独立坐标系（平面四参数转换模型）
 
-![XY2独立](/img/XY2独立.png)
+![XY2独立](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XY2独立.png)
 
 ​	X0与Y0为坐标平移量，cos α，sin α 为坐标旋转因子，m为缩放因子。x1、y1为上一步的到的高斯投影面下的坐标；
 

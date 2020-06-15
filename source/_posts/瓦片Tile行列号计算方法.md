@@ -20,7 +20,7 @@ categories:
 >
 > **百度XYZ**：Z从1开始，在最高级就把地图分为四块瓦片；XY的原点在经度为0纬度位0的位置，X从左向右，Y从下向上。	
 
-![瓦片原理图3](/img/瓦片原理图3.png)
+![瓦片原理图3](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/瓦片原理图3.png)
 
 ### 2.经纬度和行列号如何换算
 
@@ -30,9 +30,9 @@ categories:
 
 ​	先补一个。下列公式定义在使用墨卡托投影的地图中，从纬线φ和经线λ如何推导为坐标系中的点坐标x和y。[墨卡托投影法](https://zh.wikipedia.org/wiki/%E9%BA%A5%E5%8D%A1%E6%89%98%E6%8A%95%E5%BD%B1%E6%B3%95)
 
-​	![XYto84](/img/XYto84.png)
+​	![XYto84](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYto84.png)
 
-​	![84toXY](/img/84toXY.png)
+​	![84toXY](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/84toXY.png)
 
 #### 1）OpenStreetMap
 
@@ -42,11 +42,11 @@ categories:
 
 ​	**特性3:**图片（z,x,y）像素（m,n）[注：像素坐标以左上角为原点，x轴向右，y轴向下]的经纬度[单位：度]分别为：
 
-![osmBLtoXY1](/img/osmXYtoBL1.png)
+![osmBLtoXY1](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL1.png)
 
-![osmBLtoXY1](/img/osmXYtoBL2.png)
+![osmBLtoXY1](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL2.png)
 
-![osmBLtoXY](/img/osmBLtoXY.png)
+![osmBLtoXY](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmBLtoXY.png)
 
 #### 2）Google Map
 

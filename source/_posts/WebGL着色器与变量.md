@@ -27,7 +27,7 @@ categories:
 >
 > vec4 gl_FragColor 指定片元颜色(RGBA格式)
 
-![绘制过程](/img/shader.png)
+![绘制过程](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/shader.png)
 
 ### 3.使用着色器的WebGL程序
 

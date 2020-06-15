@@ -28,7 +28,7 @@ categories:
 
 
 
-![](/img/ECEFandNED.jpg)
+![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/ECEFandNED.jpg)
 ### 三、平移、旋转、缩放
 要用变换矩阵用来表示平移，需要将原本为(x,y,z)的点加上一维，即(x,y,z,w)这种四元组的方式来表达坐标，等同于三维坐标(x/w,y/w,z/w)，称为 **(齐次坐标)**。
 > 齐次坐标系使得我们可以在一中特殊的方程组中求出解，这个方程组中每一个方程都表示一个与系统中其他直线平行的直线。我们知道在欧几里得空间中，对这种方程组是无解的，因为他们没有交点。然而在现实世界中我们是可以看到两条平行线相交的。
@@ -36,23 +36,23 @@ categories:
 >规定（x, y, z, 0）表示一个向量，（x, y, z, 1）或（x', y', z', 2）等w不为0时来表示点。
 
 对于平移变换矩阵:
-![平移变换矩阵](/img/translationmatrix.png)
+![平移变换矩阵](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/translationmatrix.png)
 
 对于X旋转变换矩阵:
 
-![X旋转变换矩阵](./images/rotationmatrixX.png)
+![X旋转变换矩阵](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixX.png)
 
 对于Y旋转变换矩阵:
 
-![Y旋转变换矩阵](./images/rotationmatrixY.png)
+![Y旋转变换矩阵](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixY.png)
 
 对于Z旋转变换矩阵:
 
-![Z旋转变换矩](./images/rotationmatrixZ.png)
+![Z旋转变换矩](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixZ.png)
 
 对于缩放变换矩阵:
 
-![缩放变换矩阵](/img/scalarmatrix.png)
+![缩放变换矩阵](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/scalarmatrix.png)
 
 对于任意轴旋转:
 
@@ -72,9 +72,9 @@ categories:
 
 反向旋转平移回去，得到结果。即绕Y轴旋转角度为β；绕X轴转角度为-α；反向平移。
 
-![](/img/anyrotation.jpg)
+![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotation.jpg)
 
 如果不需要平移，最终结果公式为：
 
-![](/img/anyrotationresult.gif)
+![](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotationresult.gif)
 

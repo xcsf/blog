@@ -15,7 +15,7 @@ categories:
 
 ### 二、算法步骤
 
-![QEM算法步骤](/img/QEM算法步骤.png)
+![QEM算法步骤](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM算法步骤.png)
 
 1. 初始化所有顶点的 **Q** 矩阵。
 2. 选择所有有效边。 (所有联通边 **(v1, v2)** 、或者长度小于某一个阈值的边。)
@@ -28,7 +28,7 @@ categories:
 
 定义顶点的误差为顶点到该顶点相交的三角形的平面的距离平方和：
 
-![QEM距离平方和](/img/QEM距离平方和.png)
+![QEM距离平方和](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM距离平方和.png)
 
 * 其中**P**为平面方程 **[a,b,c,d]T** , **v**为顶点**[x,y,z,1]**，法向量 **n = [a,b,c]**
 
@@ -36,9 +36,9 @@ categories:
 
 * **n**模长等于1时，**P·v**即点到平面距离。 
 
-![QEM距离平方和](/img/QEM距离平方和2.png)
+![QEM距离平方和](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM距离平方和2.png)
 
-![QEM矩阵Kp](/img/QEM矩阵Kp.png)
+![QEM矩阵Kp](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM矩阵Kp.png)
 
 这个基本二次误差**Kp**可以用来求空间中任意点到平面**P**的平方距离。我们可以把这些基本二次曲面加起来，用一个矩阵**Q**表示整个平面集合。
 
@@ -48,11 +48,11 @@ categories:
 
 2. 对二次项式Δ(v)求导，当求导等于0时；
 
-   ![QEM求导](/img/QEM求导.png)
+   ![QEM求导](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM求导.png)
 
    当左边矩阵可逆时，可求解：
 
-   ![QEM可逆](/img/QEM可逆.png)
+   ![QEM可逆](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM可逆.png)
 
    否则，根据第一条策略。
 

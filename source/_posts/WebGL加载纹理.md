@@ -124,8 +124,8 @@ image.src = require("@/assets/sky.jpg");
 
 [WebGLRenderingContext.pixelStorei()](https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/pixelStorei)
 
-![WebGL_TexCoord](/img/WebGL_TexCoord.png)
-![Image_Coord](/img/Image_Coord.png)
+![WebGL_TexCoord](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/WebGL_TexCoord.png)
+![Image_Coord](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/Image_Coord.png)
 
 **激活纹理单元(texture unit)**
 

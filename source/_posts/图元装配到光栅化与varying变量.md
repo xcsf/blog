@@ -51,7 +51,7 @@ varying变量。只能是float、vec2、vec3、vec4、mat2、mat3、mat4。必�
 
 ### 图元装配到光栅化
 
-![绘制过程](/img/shader.png)
+![绘制过程](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/shader.png)
 
 
 1. 缓冲区对象中第一个坐标传递给```a_Position```继而被赋值给```gl_Position```，赋值后改顶点进入图形装配区，并储存。
