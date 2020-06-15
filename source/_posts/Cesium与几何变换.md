@@ -40,15 +40,15 @@ categories:
 
 对于X旋转变换矩阵:
 
-![X旋转变换矩阵](/images/rotationmatrixX.png)
+![X旋转变换矩阵](./images/rotationmatrixX.png)
 
 对于Y旋转变换矩阵:
 
-![Y旋转变换矩阵](/images/rotationmatrixY.png)
+![Y旋转变换矩阵](./images/rotationmatrixY.png)
 
 对于Z旋转变换矩阵:
 
-![Z旋转变换矩](/images/rotationmatrixZ.png)
+![Z旋转变换矩](./images/rotationmatrixZ.png)
 
 对于缩放变换矩阵:
 
