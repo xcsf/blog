@@ -26,18 +26,18 @@
 <meta property="og:site_name" content="xcsf&#39;s Blog">
 <meta property="og:description" content="1.行列号编号规则​    在讲瓦片的时候说到过这些规则，这里重复一遍： ​    要在浏览器上把每个切片放到正确的位置，保证拼接正确，就要将每个瓦片进行编号，有了编号后就知道每个瓦片对应加载的位置，此处可以脑补拼图。下面先了解下编号的规则。  谷歌XYZ：Z表示缩放层级，Z&#x3D;zoom；XY的原点在左上角，X从左向右，Y从上向下。 TMS：开源产品的标准，Z的定义与谷歌相同；XY的原点在左下角，X">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png">
-<meta property="og:image" content="https://xcsf.github.io/img/XYto84.png">
-<meta property="og:image" content="https://xcsf.github.io/img/84toXY.png">
-<meta property="og:image" content="https://xcsf.github.io/img/osmXYtoBL1.png">
-<meta property="og:image" content="https://xcsf.github.io/img/osmXYtoBL2.png">
-<meta property="og:image" content="https://xcsf.github.io/img/osmBLtoXY.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYto84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/84toXY.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmBLtoXY.png">
 <meta property="article:published_time" content="2020-06-12T18:02:57.000Z">
-<meta property="article:modified_time" content="2020-06-15T13:02:56.894Z">
+<meta property="article:modified_time" content="2020-06-15T13:32:56.500Z">
 <meta property="article:author" content="xcsf">
 <meta property="article:tag" content="瓦片地图">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png">
 
 <link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/%E7%93%A6%E7%89%87Tile%E8%A1%8C%E5%88%97%E5%8F%B7%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95/">
 
@@ -206,7 +206,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-15 13:02:56" itemprop="dateModified" datetime="2020-06-15T13:02:56+00:00">2020-06-15</time>
+                <time title="修改时间：2020-06-15 13:32:56" itemprop="dateModified" datetime="2020-06-15T13:32:56+00:00">2020-06-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -241,18 +241,18 @@
 <p><strong>QuadTree</strong>：微软Bing地图使用的编码规范，Z的定义与谷歌相同，同一层级的瓦片不用XY两个维度表示，而只用一个整数表示，该整数服从四叉树编码规则</p>
 <p><strong>百度XYZ</strong>：Z从1开始，在最高级就把地图分为四块瓦片；XY的原点在经度为0纬度位0的位置，X从左向右，Y从下向上。    </p>
 </blockquote>
-<p><img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png" alt="瓦片原理图3"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png" alt="瓦片原理图3"></p>
 <h3 id="2-经纬度和行列号如何换算"><a href="#2-经纬度和行列号如何换算" class="headerlink" title="2.经纬度和行列号如何换算"></a>2.经纬度和行列号如何换算</h3><p>​    我们知道加载瓦片需要通过相应的URL请求到对应的图片并加载至浏览器正确的位置上。通常我们使用的地图API（如ArcGIS API for JS）会帮我们把参数计算出来，我们只要拼接成正确的URL就可以加载瓦片图层了。</p>
 <p>​    但是，如果我们想要自己爬取下载网上一些地图的瓦片，或者自己撸一个加载瓦片的方法，就要必须知道如何<strong>经纬度</strong>转换成瓦片的<strong>行列号</strong>。</p>
 <p>​    先补一个。下列公式定义在使用墨卡托投影的地图中，从纬线φ和经线λ如何推导为坐标系中的点坐标x和y。<a href="https://zh.wikipedia.org/wiki/%E9%BA%A5%E5%8D%A1%E6%89%98%E6%8A%95%E5%BD%B1%E6%B3%95" target="_blank" rel="noopener">墨卡托投影法</a></p>
-<p>​    <img src="/img/XYto84.png" alt="XYto84"></p>
-<p>​    <img src="/img/84toXY.png" alt="84toXY"></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYto84.png" alt="XYto84"></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/84toXY.png" alt="84toXY"></p>
 <h4 id="1）OpenStreetMap"><a href="#1）OpenStreetMap" class="headerlink" title="1）OpenStreetMap"></a>1）OpenStreetMap</h4><p>​    <strong>特性1:</strong>z: [0~18] x,y: [0~(2^z-1)]</p>
 <p>​    <strong>特性2:</strong>第z级别，x,y方向的瓦片个数均为：2^z</p>
 <p>​    <strong>特性3:</strong>图片（z,x,y）像素（m,n）[注：像素坐标以左上角为原点，x轴向右，y轴向下]的经纬度[单位：度]分别为：</p>
-<p><img src="/img/osmXYtoBL1.png" alt="osmBLtoXY1"></p>
-<p><img src="/img/osmXYtoBL2.png" alt="osmBLtoXY1"></p>
-<p><img src="/img/osmBLtoXY.png" alt="osmBLtoXY"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL1.png" alt="osmBLtoXY1"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL2.png" alt="osmBLtoXY1"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmBLtoXY.png" alt="osmBLtoXY"></p>
 <h4 id="2）Google-Map"><a href="#2）Google-Map" class="headerlink" title="2）Google Map"></a>2）Google Map</h4><p>​    <strong>特性1:</strong>z: [0~18]    x,y: [0~(2^z-1)]</p>
 <p>​    <strong>特性2:</strong>图片（x,y,z）像素（m,n）[注：像素坐标以左上角为原点，x轴向右，y轴向下]的经纬度[单位：度]与openmapstreet方法一致。</p>
 <h4 id="3）Bing-Map"><a href="#3）Bing-Map" class="headerlink" title="3）Bing Map"></a>3）Bing Map</h4><p>​    </p>

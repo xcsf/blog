@@ -26,20 +26,20 @@
 <meta property="og:site_name" content="xcsf&#39;s Blog">
 <meta property="og:description" content="瓦片(Tile)地图原理与加载1. 什么是瓦片地图​    我们在网上浏览地图比如常见的：高德、谷歌、Bing、腾讯地图、百度地图、OpenStreetMap。地图加载时是一个方块一个方块加载显示出来。这种地图加载方式就是将地图（就是张图片）按照详细程度等级制作成各个等级的瓦片（还是张图片），结构如下图。根据用户缩放情况 显示不同等级的地图图片。 一些基本特性：  参考椭球：WGS84  投影：墨">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE1.png">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE2.png">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE4.png">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE5.png">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE6.png">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE8.png">
-<meta property="og:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE7.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE7.png">
 <meta property="article:published_time" content="2020-06-12T17:52:28.000Z">
-<meta property="article:modified_time" content="2020-06-15T13:02:56.894Z">
+<meta property="article:modified_time" content="2020-06-15T13:32:56.500Z">
 <meta property="article:author" content="xcsf">
 <meta property="article:tag" content="瓦片地图">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://xcsf.github.io/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE1.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE1.png">
 
 <link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/%E7%93%A6%E7%89%87Tile%E5%9C%B0%E5%9B%BE%E5%8E%9F%E7%90%86/">
 
@@ -208,7 +208,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-15 13:02:56" itemprop="dateModified" datetime="2020-06-15T13:02:56+00:00">2020-06-15</time>
+                <time title="修改时间：2020-06-15 13:32:56" itemprop="dateModified" datetime="2020-06-15T13:32:56+00:00">2020-06-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -249,13 +249,13 @@
 <li><p>图片格式：jpg[有损压缩率高、不透明]   png[无损、透明]</p>
 </li>
 </ol>
-<p><img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE1.png" alt="瓦片原理图1"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE1.png" alt="瓦片原理图1"></p>
 <h3 id="2-为什么使用瓦片地图"><a href="#2-为什么使用瓦片地图" class="headerlink" title="2. 为什么使用瓦片地图"></a>2. 为什么使用瓦片地图</h3><p>​    1）<strong>瓦片地图缓存非常高效</strong>。如果你曾查看中央公园的地图而下载过曼哈顿的瓦片，当你需要显示泽西城的地图时，你的浏览器可以使用之前缓存的相同的瓦片，而不是重新再下载一次。</p>
 <p>​    2）<strong>瓦片地图可以渐进加载</strong>。即使当前地图的边缘部分还没有加载完成，也可以缩放移动到其他地方。</p>
 <p>​    3）<strong>瓦片地图简单易用</strong>。描述地图瓦片的坐标系统很简单，使得很容易在服务器、网络、桌面或移动设备上实现技术集成。</p>
 <p>​    4）<strong>传输效率高、减少服务器压力</strong>。由于地图内容会跟着用户缩放程度进行一定的简化和隐藏，这一切如果动态由服务器计算后返回，效率大大降低，而预先为地图分好固定等级，将地图作为图片存储在服务端，更据请求只返回特定的地图图片则简便高效很多。</p>
 <h3 id="3-瓦片地图怎么做出来的"><a href="#3-瓦片地图怎么做出来的" class="headerlink" title="3. 瓦片地图怎么做出来的"></a>3. 瓦片地图怎么做出来的</h3><p>​    通常找软件生成去吧。。。基本原理过程就是：</p>
-<p><img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE2.png" alt="瓦片原理图2"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE2.png" alt="瓦片原理图2"></p>
 <p>​    <strong>第一点</strong>：地球是个近似球体。要转为平面的地图需要投影。或者直接使用正射影像当瓦片用咯。</p>
 <p>​    <strong>第二点</strong>：投影完后，就按照地图详细等级进行切分。最高级（level = 0）,需要的信息最少，最宏观，就是一张256*256像素图片，下一级（level = 1）精细一些，就是512*512像素，以此类推。最后就成了个金字塔的体系。</p>
 <p>​    <strong>第三点</strong>：每张图片都是同样大小的图片，通常会都切分为<strong>256*256</strong>大小的图片，这就是<strong>瓦片</strong>了。算一算就知道，（level = 0）一张瓦片，到（level = 1）四张瓦片……..</p>
@@ -266,11 +266,11 @@
 <p><strong>QuadTree</strong>：微软Bing地图使用的编码规范，Z的定义与谷歌相同，同一层级的瓦片不用XY两个维度表示，而只用一个整数表示，该整数服从四叉树编码规则</p>
 <p><strong>百度XYZ</strong>：Z从1开始，在最高级就把地图分为四块瓦片；XY的原点在经度为0纬度位0的位置，X从左向右，Y从下向上。    </p>
 </blockquote>
-<p><img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png" alt="瓦片原理图3"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png" alt="瓦片原理图3"></p>
 <p>​    编好了号，瓦片做好了，就是一堆文件夹里放着图片。直观点就是下图：</p>
-<p>​    文件夹名字表示级别： <img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE4.png" alt="瓦片原理图4"></p>
-<p>​    点开21级文件夹，文件夹名表示x：<img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE5.png" alt="瓦片原理图5"></p>
-<p>​    再打开文件夹就是图片了,名字就是y：<img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE6.png" alt="瓦片原理图6"></p>
+<p>​    文件夹名字表示级别： <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE4.png" alt="瓦片原理图4"></p>
+<p>​    点开21级文件夹，文件夹名表示x：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE5.png" alt="瓦片原理图5"></p>
+<p>​    再打开文件夹就是图片了,名字就是y：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE6.png" alt="瓦片原理图6"></p>
 <p>​    *.kml文件里面存了写坐标信息有需要可以读取，这里先不管它。</p>
 <h3 id="5-瓦片的加载方法"><a href="#5-瓦片的加载方法" class="headerlink" title="5.瓦片的加载方法"></a>5.瓦片的加载方法</h3><p>​    有了瓦片，再简单的说下加载瓦片地图的<strong>基本思路</strong>：</p>
 <p>​    1. 要根据用户缩放程度算出显示范围所对应的瓦片的<strong>x、y、z</strong>（leve）（也可以说是行列号）。</p>
@@ -281,7 +281,7 @@
 
 <p>​    <strong>不太明白的看看这个：</strong></p>
 <p>​     我们天地图官网上打开地图时候F12里找到的请求：参数就有x、y、l（leve），再看上面的代码getTileUrl函数，帮我们把算出来的三个参数替换到url中去请求到对应的瓦片，tag是天地图有好几个瓦片服务地址任意取一个数，暂时可以不管。</p>
-<p><img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE8.png" alt="瓦片原理图6"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE8.png" alt="瓦片原理图6"></p>
 <p>​    url搞定了剩下的就是造个layer造个map加到view中。</p>
 <h3 id="6-加载自定义的瓦片"><a href="#6-加载自定义的瓦片" class="headerlink" title="6. 加载自定义的瓦片"></a>6. 加载自定义的瓦片</h3><p>​    上面我们用的是天地图的瓦片，我们很多时候需要加载自己的做好的瓦片,现在我们以上面截图的那些做好的瓦片文件为例，写个属于自己的瓦片地图的服务：</p>
 <h5 id="这里用-NET-Web-API实现"><a href="#这里用-NET-Web-API实现" class="headerlink" title="这里用.NET Web API实现"></a>这里用.NET Web API实现</h5><p>其实思路简单：</p>
@@ -300,7 +300,7 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> MyCustomTileLayer = BaseTileLayer.createSubclass(&#123;</span><br><span class="line">    <span class="comment">// properties of the custom tile layer</span></span><br><span class="line">    properties: &#123;</span><br><span class="line">        urlTemplate: <span class="literal">null</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// override getTileUrl()</span></span><br><span class="line">    <span class="comment">// generate the tile url for a given level, row and column</span></span><br><span class="line">    getTileUrl: <span class="function"><span class="keyword">function</span> (<span class="params">level, row, col</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.urlTemplate.replace(<span class="string">"&#123;z&#125;"</span>, level).replace(<span class="string">"&#123;x&#125;"</span>, col).replace(<span class="string">"&#123;y&#125;"</span>, row).replace(<span class="string">"&#123;tag&#125;"</span>, col % <span class="number">8</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> Tile = <span class="keyword">new</span> MyCustomTileLayer(&#123;</span><br><span class="line">    urlTemplate: <span class="string">"http://localhost:62881/api/test?mt=测试&amp;version=20181210&amp;x=&#123;x&#125;&amp;y=&#123;y&#125;&amp;z=&#123;z&#125;"</span>,</span><br><span class="line">    title: <span class="string">"Tile"</span>,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
 <p>​    这样底图图层就创建出来了，接下来就可以直接使用：</p>
-<p><img src="/img/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE7.png" alt="瓦片原理图7"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE7.png" alt="瓦片原理图7"></p>
 
     </div>
 

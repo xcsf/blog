@@ -26,20 +26,20 @@
 <meta property="og:site_name" content="xcsf&#39;s Blog">
 <meta property="og:description" content="一、了解模型矩阵、视图矩阵、投影矩阵计算机在显示一个三维物体时，本质都是对相应的 顶点 坐标进行计算，进而渲染出图元、片元，得到显示屏上看到的结果。 而最原本的模型的各个顶点坐标并不是在世界坐标系中建立的(世界坐标系即下一节的球心坐标(ECEF))。以下称原本的模型坐标系为模型本体坐标系 那么我们需要将模型在世界坐标系下进行展示和运动，就得将模型所有顶点都转换到世界坐标系下。 这个转换过程可以用4">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://xcsf.github.io/img/ECEFandNED.jpg">
-<meta property="og:image" content="https://xcsf.github.io/img/translationmatrix.png">
-<meta property="og:image" content="https://xcsf.github.io/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/images/rotationmatrixX.png">
-<meta property="og:image" content="https://xcsf.github.io/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/images/rotationmatrixY.png">
-<meta property="og:image" content="https://xcsf.github.io/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/images/rotationmatrixZ.png">
-<meta property="og:image" content="https://xcsf.github.io/img/scalarmatrix.png">
-<meta property="og:image" content="https://xcsf.github.io/img/anyrotation.jpg">
-<meta property="og:image" content="https://xcsf.github.io/img/anyrotationresult.gif">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/ECEFandNED.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/translationmatrix.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixX.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixY.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixZ.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/scalarmatrix.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotation.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotationresult.gif">
 <meta property="article:published_time" content="2020-06-12T18:44:46.000Z">
-<meta property="article:modified_time" content="2020-06-15T13:02:56.890Z">
+<meta property="article:modified_time" content="2020-06-15T13:32:56.500Z">
 <meta property="article:author" content="xcsf">
 <meta property="article:tag" content="Cesium">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://xcsf.github.io/img/ECEFandNED.jpg">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/ECEFandNED.jpg">
 
 <link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/">
 
@@ -208,7 +208,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-15 13:02:56" itemprop="dateModified" datetime="2020-06-15T13:02:56+00:00">2020-06-15</time>
+                <time title="修改时间：2020-06-15 13:32:56" itemprop="dateModified" datetime="2020-06-15T13:32:56+00:00">2020-06-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -244,7 +244,7 @@
 <h3 id="二、了解球心坐标-ECEF-与本地坐标-NEU"><a href="#二、了解球心坐标-ECEF-与本地坐标-NEU" class="headerlink" title="二、了解球心坐标(ECEF)与本地坐标(NEU)"></a>二、了解球心坐标(ECEF)与本地坐标(NEU)</h3><p><strong>本地坐标系(NEU):</strong> 一种地方空间直角系，原点为O，其北向坐标轴(N 坐标)为过O点的子午线的切线,指北为正。其东向坐标轴(E坐标)为过O点的椭球的平行圈的切线,指东为正。天顶向坐标轴(U坐标),为过O点垂直于N轴与E轴，指向天顶为正。</p>
 <p><strong>球心坐标系(ECEF,Earth-Centered，Earth-Fixed):</strong> 以地球为中心,坐标轴以International Reference Pole(IRM)和International Reference Meridian(IRM)为准，国际参考极点和国际参考子午线，遵照地表所确定。(earth-fixed)</p>
 <p><a href="https://docs.inertialsense.com/user-manual/reference/coordinate_frames/" target="_blank" rel="noopener">See docs.inertialsense.com</a></p>
-<p><img src="/img/ECEFandNED.jpg" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/ECEFandNED.jpg" alt=""></p>
 <h3 id="三、平移、旋转、缩放"><a href="#三、平移、旋转、缩放" class="headerlink" title="三、平移、旋转、缩放"></a>三、平移、旋转、缩放</h3><p>要用变换矩阵用来表示平移，需要将原本为(x,y,z)的点加上一维，即(x,y,z,w)这种四元组的方式来表达坐标，等同于三维坐标(x/w,y/w,z/w)，称为 <strong>(齐次坐标)</strong>。</p>
 <blockquote>
 <p>齐次坐标系使得我们可以在一中特殊的方程组中求出解，这个方程组中每一个方程都表示一个与系统中其他直线平行的直线。我们知道在欧几里得空间中，对这种方程组是无解的，因为他们没有交点。然而在现实世界中我们是可以看到两条平行线相交的。</p>
@@ -252,15 +252,15 @@
 <blockquote>
 <p>规定（x, y, z, 0）表示一个向量，（x, y, z, 1）或（x’, y’, z’, 2）等w不为0时来表示点。</p>
 </blockquote>
-<p>对于平移变换矩阵:<br><img src="/img/translationmatrix.png" alt="平移变换矩阵"></p>
+<p>对于平移变换矩阵:<br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/translationmatrix.png" alt="平移变换矩阵"></p>
 <p>对于X旋转变换矩阵:</p>
-<p><img src="./images/rotationmatrixX.png" alt="X旋转变换矩阵"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixX.png" alt="X旋转变换矩阵"></p>
 <p>对于Y旋转变换矩阵:</p>
-<p><img src="./images/rotationmatrixY.png" alt="Y旋转变换矩阵"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixY.png" alt="Y旋转变换矩阵"></p>
 <p>对于Z旋转变换矩阵:</p>
-<p><img src="./images/rotationmatrixZ.png" alt="Z旋转变换矩"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixZ.png" alt="Z旋转变换矩"></p>
 <p>对于缩放变换矩阵:</p>
-<p><img src="/img/scalarmatrix.png" alt="缩放变换矩阵"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/scalarmatrix.png" alt="缩放变换矩阵"></p>
 <p>对于任意轴旋转:</p>
 <p>首先将旋转轴平移至与坐标轴重合，然后进行旋转，最后再平移回去。</p>
 <p>第一步平移</p>
@@ -270,9 +270,9 @@
 <p>绕Z轴旋转角度θ</p>
 <p>第三步</p>
 <p>反向旋转平移回去，得到结果。即绕Y轴旋转角度为β；绕X轴转角度为-α；反向平移。</p>
-<p><img src="/img/anyrotation.jpg" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotation.jpg" alt=""></p>
 <p>如果不需要平移，最终结果公式为：</p>
-<p><img src="/img/anyrotationresult.gif" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotationresult.gif" alt=""></p>
 
     </div>
 

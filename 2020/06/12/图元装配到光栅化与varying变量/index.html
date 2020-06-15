@@ -26,13 +26,13 @@
 <meta property="og:site_name" content="xcsf&#39;s Blog">
 <meta property="og:description" content="WebGL 图元装配到光栅化与varying变量图元装配过程(primitive assembly process) 几何图形装配(geometric shape assembly) 1.声明attribute vec4 a_Color 接受数据 2.赋值给varying vec4 v_Color 3.片元着色器中声明varying vec4 v_Color  如果顶点着色器中有类型和命名相同的v">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://xcsf.github.io/img/shader.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/shader.png">
 <meta property="article:published_time" content="2020-06-12T18:35:58.000Z">
-<meta property="article:modified_time" content="2020-06-15T13:02:56.894Z">
+<meta property="article:modified_time" content="2020-06-15T13:32:56.500Z">
 <meta property="article:author" content="xcsf">
 <meta property="article:tag" content="WebGL">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://xcsf.github.io/img/shader.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/shader.png">
 
 <link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/%E5%9B%BE%E5%85%83%E8%A3%85%E9%85%8D%E5%88%B0%E5%85%89%E6%A0%85%E5%8C%96%E4%B8%8Evarying%E5%8F%98%E9%87%8F/">
 
@@ -201,7 +201,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-15 13:02:56" itemprop="dateModified" datetime="2020-06-15T13:02:56+00:00">2020-06-15</time>
+                <time title="修改时间：2020-06-15 13:32:56" itemprop="dateModified" datetime="2020-06-15T13:32:56+00:00">2020-06-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -239,7 +239,7 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> VSHADER_SOURCE = </span><br><span class="line"><span class="string">"attribute vec4 a_Position;\n"</span> +</span><br><span class="line"><span class="string">"attribute float a_PointSize;\n"</span> +</span><br><span class="line"><span class="string">"attribute vec4 a_Color;\n"</span> +</span><br><span class="line"><span class="string">"varying vec4 v_Color;\n"</span> + </span><br><span class="line"><span class="comment">// varying variable</span></span><br><span class="line"><span class="string">"uniform mat4 u_ModelMatrix;\n"</span> +</span><br><span class="line"><span class="string">"void main() &#123;\n"</span> +</span><br><span class="line"><span class="string">"  gl_Position = u_ModelMatrix * a_Position;\n"</span> +</span><br><span class="line"><span class="string">"  gl_PointSize = a_PointSize;\n"</span> +</span><br><span class="line"><span class="string">"  v_Color = a_Color;\n"</span> +</span><br><span class="line"> <span class="comment">// Pass the data to the fragment shader</span></span><br><span class="line"><span class="string">"&#125;\n"</span></span><br><span class="line"><span class="keyword">let</span> FSHADER_SOURCE = </span><br><span class="line"><span class="string">"precision mediump float;\n"</span> +</span><br><span class="line"><span class="string">"uniform vec4 u_FragColor;\n"</span> +</span><br><span class="line"><span class="string">"varying vec4 v_Color;\n"</span> + </span><br><span class="line"><span class="comment">// Receive the data from the vertex shader</span></span><br><span class="line"><span class="string">"void main() &#123;\n"</span> +</span><br><span class="line"><span class="string">"  gl_FragColor = v_Color;\n"</span> +</span><br><span class="line"><span class="string">"&#125;\n"</span>,</span><br></pre></td></tr></table></figure>
 
 <h3 id="varying变量的作用和内插过程"><a href="#varying变量的作用和内插过程" class="headerlink" title="varying变量的作用和内插过程"></a>varying变量的作用和内插过程</h3><p>varying变量。只能是float、vec2、vec3、vec4、mat2、mat3、mat4。必须全局。最少支持8个。<br>顶点着色器中的<code>v_Color</code>在传入片元着色器之前经过了内插过程。WebGL根据我们传入的颜色值，自动计算出所有片元的颜色，赋值给片元着色器中的<code>v_Color</code>。</p>
-<h3 id="图元装配到光栅化"><a href="#图元装配到光栅化" class="headerlink" title="图元装配到光栅化"></a>图元装配到光栅化</h3><p><img src="/img/shader.png" alt="绘制过程"></p>
+<h3 id="图元装配到光栅化"><a href="#图元装配到光栅化" class="headerlink" title="图元装配到光栅化"></a>图元装配到光栅化</h3><p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/shader.png" alt="绘制过程"></p>
 <ol>
 <li>缓冲区对象中第一个坐标传递给<code>a_Position</code>继而被赋值给<code>gl_Position</code>，赋值后改顶点进入图形装配区，并储存。</li>
 <li>重复执行顶点着色器，将所有坐标点传入并存储在装配区。</li>
