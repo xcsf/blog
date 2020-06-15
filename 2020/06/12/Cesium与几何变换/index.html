@@ -5,43 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 4.2.1">
-  <link rel="apple-touch-icon" sizes="180x180" href="/uploads/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/uploads/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/uploads/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/uploads/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/uploads/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/uploads/favicon-16x16.png">
 
-<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/blog/css/main.css">
 
 
-<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"xcsf.github.io","root":"/blog/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
   <meta name="description" content="一、了解模型矩阵、视图矩阵、投影矩阵计算机在显示一个三维物体时，本质都是对相应的 顶点 坐标进行计算，进而渲染出图元、片元，得到显示屏上看到的结果。 而最原本的模型的各个顶点坐标并不是在世界坐标系中建立的(世界坐标系即下一节的球心坐标(ECEF))。以下称原本的模型坐标系为模型本体坐标系 那么我们需要将模型在世界坐标系下进行展示和运动，就得将模型所有顶点都转换到世界坐标系下。 这个转换过程可以用4">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Cesium与几何变换">
-<meta property="og:url" content="http://yoursite.com/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/index.html">
+<meta property="og:url" content="https://xcsf.github.io/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/index.html">
 <meta property="og:site_name" content="xcsf&#39;s Blog">
 <meta property="og:description" content="一、了解模型矩阵、视图矩阵、投影矩阵计算机在显示一个三维物体时，本质都是对相应的 顶点 坐标进行计算，进而渲染出图元、片元，得到显示屏上看到的结果。 而最原本的模型的各个顶点坐标并不是在世界坐标系中建立的(世界坐标系即下一节的球心坐标(ECEF))。以下称原本的模型坐标系为模型本体坐标系 那么我们需要将模型在世界坐标系下进行展示和运动，就得将模型所有顶点都转换到世界坐标系下。 这个转换过程可以用4">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://yoursite.com/img/ECEFandNED.jpg">
-<meta property="og:image" content="http://yoursite.com/img/translationmatrix.png">
-<meta property="og:image" content="http://yoursite.com/img/rotationmatrixX.png">
-<meta property="og:image" content="http://yoursite.com/img/rotationmatrixY.png">
-<meta property="og:image" content="http://yoursite.com/img/rotationmatrixZ.png">
-<meta property="og:image" content="http://yoursite.com/img/scalarmatrix.png">
-<meta property="og:image" content="http://yoursite.com/img/anyrotation.jpg">
-<meta property="og:image" content="http://yoursite.com/img/anyrotationresult.gif">
+<meta property="og:image" content="https://xcsf.github.io/img/ECEFandNED.jpg">
+<meta property="og:image" content="https://xcsf.github.io/img/translationmatrix.png">
+<meta property="og:image" content="https://xcsf.github.io/img/rotationmatrixX.png">
+<meta property="og:image" content="https://xcsf.github.io/img/rotationmatrixY.png">
+<meta property="og:image" content="https://xcsf.github.io/img/rotationmatrixZ.png">
+<meta property="og:image" content="https://xcsf.github.io/img/scalarmatrix.png">
+<meta property="og:image" content="https://xcsf.github.io/img/anyrotation.jpg">
+<meta property="og:image" content="https://xcsf.github.io/img/anyrotationresult.gif">
 <meta property="article:published_time" content="2020-06-12T18:44:46.000Z">
-<meta property="article:modified_time" content="2020-06-15T12:44:03.268Z">
+<meta property="article:modified_time" content="2020-06-15T12:50:35.108Z">
 <meta property="article:author" content="xcsf">
 <meta property="article:tag" content="Cesium">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/img/ECEFandNED.jpg">
+<meta name="twitter:image" content="https://xcsf.github.io/img/ECEFandNED.jpg">
 
-<link rel="canonical" href="http://yoursite.com/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/">
+<link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/">
 
 
 <script id="page-configurations">
@@ -103,7 +103,7 @@
 
   <div class="site-meta">
 
-    <a href="/" class="brand" rel="start">
+    <a href="/blog/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <h1 class="site-title">xcsf's Blog</h1>
       <span class="logo-line-after"><i></i></span>
@@ -124,27 +124,27 @@
   <ul id="menu" class="menu">
         <li class="menu-item menu-item-home">
 
-    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
 
   </li>
         <li class="menu-item menu-item-about">
 
-    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">11</span></a>
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">11</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">9</span></a>
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">9</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">23</span></a>
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">23</span></a>
 
   </li>
   </ul>
@@ -178,10 +178,10 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/">
+    <link itemprop="mainEntityOfPage" href="https://xcsf.github.io/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/43439835.png">
+      <meta itemprop="image" content="/blog/uploads/43439835.png">
       <meta itemprop="name" content="xcsf">
       <meta itemprop="description" content="">
     </span>
@@ -208,7 +208,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-15 12:44:03" itemprop="dateModified" datetime="2020-06-15T12:44:03+00:00">2020-06-15</time>
+                <time title="修改时间：2020-06-15 12:50:35" itemprop="dateModified" datetime="2020-06-15T12:50:35+00:00">2020-06-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -216,11 +216,11 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/GIS/" itemprop="url" rel="index"><span itemprop="name">GIS</span></a>
+                  <a href="/blog/categories/GIS/" itemprop="url" rel="index"><span itemprop="name">GIS</span></a>
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/GIS/Cesium/" itemprop="url" rel="index"><span itemprop="name">Cesium</span></a>
+                  <a href="/blog/categories/GIS/Cesium/" itemprop="url" rel="index"><span itemprop="name">Cesium</span></a>
                 </span>
             </span>
 
@@ -282,7 +282,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Cesium/" rel="tag"># Cesium</a>
+              <a href="/blog/tags/Cesium/" rel="tag"># Cesium</a>
           </div>
 
         
@@ -291,11 +291,11 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/06/12/Javascript%E8%AF%BB%E5%8F%96Shapefile/" rel="prev" title="Javascript读取Shapefile">
+    <a href="/blog/2020/06/12/Javascript%E8%AF%BB%E5%8F%96Shapefile/" rel="prev" title="Javascript读取Shapefile">
       <i class="fa fa-chevron-left"></i> Javascript读取Shapefile
     </a></div>
       <div class="post-nav-item">
-    <a href="/2020/06/12/ArcGIS-API-for-Javascript-4-X%E6%89%A9%E5%B1%95Echarts4-2-0/" rel="next" title="ArcGIS API for Javascript 4.X扩展Echarts4.2.0">
+    <a href="/blog/2020/06/12/ArcGIS-API-for-Javascript-4-X%E6%89%A9%E5%B1%95Echarts4-2-0/" rel="next" title="ArcGIS API for Javascript 4.X扩展Echarts4.2.0">
       ArcGIS API for Javascript 4.X扩展Echarts4.2.0 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
@@ -363,27 +363,27 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <img class="site-author-image" itemprop="image" alt="xcsf"
-      src="/uploads/43439835.png">
+      src="/blog/uploads/43439835.png">
   <p class="site-author-name" itemprop="name">xcsf</p>
   <div class="site-description" itemprop="description"></div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
-          <a href="/archives/">
+          <a href="/blog/archives/">
         
           <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
-            <a href="/categories/">
+            <a href="/blog/categories/">
           
         <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-            <a href="/tags/">
+            <a href="/blog/tags/">
           
         <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">标签</span></a>
@@ -438,19 +438,19 @@
   </div>
 
   
-  <script src="/lib/anime.min.js"></script>
-  <script src="/lib/velocity/velocity.min.js"></script>
-  <script src="/lib/velocity/velocity.ui.min.js"></script>
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
 
-<script src="/js/utils.js"></script>
+<script src="/blog/js/utils.js"></script>
 
-<script src="/js/motion.js"></script>
-
-
-<script src="/js/schemes/pisces.js"></script>
+<script src="/blog/js/motion.js"></script>
 
 
-<script src="/js/next-boot.js"></script>
+<script src="/blog/js/schemes/pisces.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
 
 
 
