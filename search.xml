@@ -386,7 +386,7 @@
       </tags>
   </entry>
   <entry>
-    <title>WebGL加载纹理</title>
+    <title>WebGL可视范围</title>
     <url>/blog/2020/06/12/WebGL%E5%8F%AF%E8%A7%86%E8%8C%83%E5%9B%B4/</url>
     <content><![CDATA[<h3 id="视点、观察目标点、上方向"><a href="#视点、观察目标点、上方向" class="headerlink" title="视点、观察目标点、上方向"></a>视点、观察目标点、上方向</h3><p><strong>视点：</strong> 观察者所处位置。</p>
 <p><strong>观察目标点：</strong> 被观察的点,确定视线。</p>
