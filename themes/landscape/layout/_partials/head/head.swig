@@ -1,6 +1,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="{{ theme.android_chrome_color }}">
+<meta name="google-site-verification" content="5xoyo3HQ2-hM-1X3qmzMwjdHCjaieR_x651Un5NYCbY" />
 <meta name="generator" content="Hexo {{ hexo_version }}">
 
 {%- if theme.favicon.apple_touch_icon %}
