@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://xcsf.github.io/blog/blog/2020/06/12/ArcGIS-API-for-Javascript-4-X%E6%89%A9%E5%B1%95Echarts4-2-0/</loc>
-    <lastmod>2021-06-06</lastmod>
-  </url>  <url>
-    <loc>https://xcsf.github.io/blog/blog/2020/06/12/QEM%E8%BE%B9%E6%8A%98%E5%8F%A0%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/</loc>
-    <lastmod>2021-06-06</lastmod>
-  </url>  <url>
-    <loc>https://xcsf.github.io/blog/blog/2020/06/12/Vue%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/</loc>
-    <lastmod>2021-06-06</lastmod>
-  </url>  <url>
     <loc>https://xcsf.github.io/blog/blog/2020/06/12/WGS84ToSZ%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E6%96%B9%E6%B3%95/</loc>
     <lastmod>2021-06-06</lastmod>
   </url>  <url>
@@ -68,6 +59,15 @@
     <lastmod>2021-06-06</lastmod>
   </url>  <url>
     <loc>https://xcsf.github.io/blog/blog/2020/06/12/Javascript%E8%AF%BB%E5%8F%96Shapefile/</loc>
+    <lastmod>2021-06-06</lastmod>
+  </url>  <url>
+    <loc>https://xcsf.github.io/blog/blog/2020/06/12/ArcGIS-API-for-Javascript-4-X%E6%89%A9%E5%B1%95Echarts4-2-0/</loc>
+    <lastmod>2021-06-06</lastmod>
+  </url>  <url>
+    <loc>https://xcsf.github.io/blog/blog/2020/06/12/QEM%E8%BE%B9%E6%8A%98%E5%8F%A0%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/</loc>
+    <lastmod>2021-06-06</lastmod>
+  </url>  <url>
+    <loc>https://xcsf.github.io/blog/blog/2020/06/12/Vue%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/</loc>
     <lastmod>2021-06-06</lastmod>
   </url>  <url>
     <loc>https://xcsf.github.io/blog/blog/2020/06/12/%E5%85%B3%E4%BA%8EArcPy%E7%9A%84%E5%9D%91-%E4%BA%8C/</loc>
