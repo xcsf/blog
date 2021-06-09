@@ -1,4 +1,4 @@
-.main-content {
+.wrapper-content {
   overflow:hidden;
     position: relative;
     
@@ -38,16 +38,16 @@
     opacity: .15;
 }
 
-.line{
+/* .line{
   position:absolute;
   height:100%; width:1px;
   opacity:0.1;
   background-color:#000;
-}
+} */
 
 .titleCont{position:relative;}
 
-.main-title {
+.wrapper-title {
     padding: .3em 1em .25em;    
     font-weight: 400;
     font-size: 40px;
@@ -57,19 +57,19 @@
     line-height:1.3;
 }
 
-.overTitle{
+/* .overTitle{
     position:absolute;
     top:0;
     left:0;
-}
-
+} */
+/* 
 .dot{
   width:3px;
   height:2px;
   background-color:white;
   position:absolute;
   opacity:0.3;
-}
+} */
 
 
 @-webkit-keyframes vignette-anim {
