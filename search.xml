@@ -874,9 +874,9 @@
     <title>旁观者回忆（一）</title>
     <url>/blog/2021/06/06/%E6%97%81%E8%A7%82%E8%80%85%E5%9B%9E%E5%BF%86-%E4%B8%80/</url>
     <content><![CDATA[<link rel="stylesheet" href="/blog/css/mycss.css">
-<main role="main" class="main-content" id="main-content">
+<main role="main" class="wrapper-content" id="wrapper-content">
     <div class="titleCont">
-        <div class="main-title" id="main-title">
+        <div class="wrapper-title" id="wrapper-title">
             "曾经发生过的事<br><span style="padding-left:100px">是不会忘记的，</span><br><span style="padding-right:110px">只是想不起来</span><br><span style="padding-left:-20px">而已。"</span>
         </div>
     </div>
