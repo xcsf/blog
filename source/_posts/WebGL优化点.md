@@ -91,11 +91,7 @@ categories:
 >     >
 >     > (4). 使用instance: 如果要渲染多个重复的物体，可以使用instance特性。
 
-
-
-
-
-
+![WebGL优化点](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/WebGL优化点.jpg)
 
 
 

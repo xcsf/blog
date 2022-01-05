@@ -1,6 +1,6 @@
 ---
 title: QEM边折叠算法
-date: 2020-06-12 18:35:58
+date: 2020-06-13 12:35:58
 tags: WebGL
 categories:
  - WebGL
@@ -108,3 +108,9 @@ function calculatorVertexDelta(geometry, vIndex) {
     return result;
 }
 ```
+
+#### 效果
+
+下图是使用three.js 实现QEM算法。对OBJ模型动态计算过程。可以看到对于简单模型，简化效果基本满足。经过多个模型测试，对于特殊形状模型简化容易出现破面现象。
+
+![QEM求导](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM算法效果.gif)
