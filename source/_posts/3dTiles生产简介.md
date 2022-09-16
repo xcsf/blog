@@ -1,6 +1,6 @@
 ---
 title: 3dTiles生产简介
-date: 2020-06-13 17:42:30
+date: 2022-06-13 17:42:30
 tags: Cesium
 categories:
   - GIS
@@ -144,6 +144,6 @@ CGAL 中应该是存在解决相关问题的程序包，不过还需要尝试。
 
 4. 将不同 LOD 的 OBJ 合成至同一瓦片集生成 tileset.json 文件
 
-5. 渲染加载效果：可以看到每个瓦片对象，根据第 3 步，定义的tileset.json，按顺序渲染出来。
+5. 渲染加载效果：可以看到每个瓦片对象，根据第 3 步，定义的 tileset.json，按顺序渲染出来。
 
 ![3dTiles生产介绍](https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles生产介绍18.gif)

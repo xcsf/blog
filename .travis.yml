@@ -14,7 +14,7 @@ notifications:
 deploy:
   provider: pages
   skip-cleanup: true
-  github-token: $GITHUB_TOKEN
+  github-token: $GH_TOKEN
   target_branch: root
   keep-history: false
   on:
