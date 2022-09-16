@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="google-site-verification" content="5xoyo3HQ2-hM-1X3qmzMwjdHCjaieR_x651Un5NYCbY" />
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/uploads/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/uploads/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/uploads/favicon-16x16.png">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"xcsf.github.io","root":"/blog/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="物体旋转使用模型视图投影矩阵变化顶点坐标。 根据鼠标位移差值，计算旋转矩阵。 12345viewProjMatrix.setPerspective()viewProjMatrix.lookAt()------g_MvpMatrix.set(viewProjMatrix)g_MvpMatrix.roate()  选中物体使用颜色缓冲区方法（简单） 当点击时，整个对象重绘成单一红色。  读取鼠标点击处">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WebGL高级技术">
+<meta property="og:url" content="https://xcsf.github.io/blog/2020/06/12/WebGL%E9%AB%98%E7%BA%A7%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="xcsf&#39;s Blog">
+<meta property="og:description" content="物体旋转使用模型视图投影矩阵变化顶点坐标。 根据鼠标位移差值，计算旋转矩阵。 12345viewProjMatrix.setPerspective()viewProjMatrix.lookAt()------g_MvpMatrix.set(viewProjMatrix)g_MvpMatrix.roate()  选中物体使用颜色缓冲区方法（简单） 当点击时，整个对象重绘成单一红色。  读取鼠标点击处">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-12T18:35:58.000Z">
+<meta property="article:modified_time" content="2022-09-16T15:07:31.920Z">
+<meta property="article:author" content="xcsf">
+<meta property="article:tag" content="WebGL">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/WebGL%E9%AB%98%E7%BA%A7%E6%8A%80%E6%9C%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>WebGL高级技术 | xcsf's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">xcsf's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">noooooooooooob</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">25</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/xcsf" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://xcsf.github.io/blog/2020/06/12/WebGL%E9%AB%98%E7%BA%A7%E6%8A%80%E6%9C%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/uploads/43439835.png">
+      <meta itemprop="name" content="xcsf">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="xcsf's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          WebGL高级技术
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-12 18:35:58" itemprop="dateCreated datePublished" datetime="2020-06-12T18:35:58+00:00">2020-06-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-09-16 15:07:31" itemprop="dateModified" datetime="2022-09-16T15:07:31+00:00">2022-09-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/WebGL/" itemprop="url" rel="index"><span itemprop="name">WebGL</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/WebGL/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">笔记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="物体旋转"><a href="#物体旋转" class="headerlink" title="物体旋转"></a>物体旋转</h3><p>使用模型视图投影矩阵变化顶点坐标。</p>
+<p>根据鼠标位移差值，计算旋转矩阵。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">viewProjMatrix.setPerspective()</span><br><span class="line">viewProjMatrix.lookAt()</span><br><span class="line">------</span><br><span class="line">g_MvpMatrix.set(viewProjMatrix)</span><br><span class="line">g_MvpMatrix.roate()</span><br></pre></td></tr></table></figure>
+
+<h3 id="选中物体"><a href="#选中物体" class="headerlink" title="选中物体"></a>选中物体</h3><h5 id="使用颜色缓冲区方法（简单）"><a href="#使用颜色缓冲区方法（简单）" class="headerlink" title="使用颜色缓冲区方法（简单）"></a>使用颜色缓冲区方法（简单）</h5><ol>
+<li><p>当点击时，整个对象重绘成单一红色。</p>
+</li>
+<li><p>读取鼠标点击处的颜色。</p>
+</li>
+<li><p>使用立方体原来的颜色重绘。</p>
+</li>
+<li><p>对比第二步读取到的颜色。 </p>
+</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gl.readPixels(x, y, width, height, format, type, pixels)</span><br><span class="line"><span class="comment">//读取颜色缓冲区中x,y,width,height参数确定的像素值，保存在pixels中</span></span><br></pre></td></tr></table></figure>
+
+<p>例如对于立方体的多个表面，将<strong>表面编号</strong>写入组成每个表面各个顶点，将编号数组传入顶点着色器。当点击时，首先在顶点着色器中将每个面根据<strong>编号</strong>计算每个面的颜色<strong>α值</strong>，并在<strong>颜色缓冲区</strong>中重绘。即可通过<code>readPixels</code>获取颜色值，得到点击的表面编号。之后根据表面编号，再传入顶点着色器对相应面进行所需操作。</p>
+<h3 id="HUD-平视显示器"><a href="#HUD-平视显示器" class="headerlink" title="HUD(平视显示器)"></a>HUD(平视显示器)</h3><p>再三维场景上叠加文本或者二维图形信息。</p>
+<p>使用两个canvas叠加。背景透明。</p>
+<h3 id="雾化"><a href="#雾化" class="headerlink" title="雾化"></a>雾化</h3><p><strong>线性雾化：</strong>雾化程度取决于与视点之间的距离。某一点的雾化程度可以定义成雾化因子。</p>
+<p>片元颜色 = 物体表面颜色 x 雾化因子 + 雾的颜色 x （1 - 雾化因子）</p>
+<h5 id="w分量"><a href="#w分量" class="headerlink" title="w分量"></a>w分量</h5><p>gl_Position的w分量为顶点的<strong>视图坐标</strong>的z分量乘以-1。在视图坐标系中，视点在原点，视线沿着Z轴负方向，观察者看到的物体其视图坐标系值z分量都为负数，所以其w值可以直接近似为顶点与视点的距离。</p>
+<h3 id="绘制圆形点"><a href="#绘制圆形点" class="headerlink" title="绘制圆形点"></a>绘制圆形点</h3><p>将方形的点剔除不需要的片元。</p>
+<p>片元着色器中内置变量</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vec4 gl_FragCoord  <span class="comment">//片元窗口坐标</span></span><br><span class="line">vec4 gl_PointCoord  <span class="comment">//片元在被绘制的点内的坐标（0.0到1.0）</span></span><br></pre></td></tr></table></figure>
+
+<p>在片元着色器中，将距离点的中心(0.5,0.5)超过0.5的片元剔除。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">distance(gl_PointCoord, vec2(<span class="number">0.5</span>, <span class="number">0.5</span>)) <span class="comment">//计算距离函数</span></span><br><span class="line">discard <span class="comment">//放弃当前片元语句</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="α混合"><a href="#α混合" class="headerlink" title="α混合"></a>α混合</h3><p>实现半透明效果，需要用到颜色的α分量。需要开启WebGL的<strong>α混合</strong>功能。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gl.enable(gl.BLEND) <span class="comment">//开启混合功能</span></span><br><span class="line">gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHAD) </span><br><span class="line"><span class="comment">//指定混合函数  参数指定进行混合操作的函数。</span></span><br><span class="line"><span class="comment">//加法混合---gl.blendFunc(gl.SRC_ALPHA, gl.ONE)</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="混合函数"><a href="#混合函数" class="headerlink" title="混合函数"></a>混合函数</h5><p>混合后的颜色  = 源颜色 * src_factor + 目标颜色 * dst_factor</p>
+<p><strong>源颜色：</strong> 待混合进去的颜色。上层颜色</p>
+<p><strong>目标颜色：</strong> 待被混合的颜色。下层颜色</p>
+<h5 id="透明与不透明共存"><a href="#透明与不透明共存" class="headerlink" title="透明与不透明共存"></a>透明与不透明共存</h5><p>透明后如果开启了<strong>隐藏面消除</strong>功能，则被隐藏的片元则不会绘制。所以不会发生混合过程。但是关闭<strong>隐藏面消除</strong>功能会使物体前后关系乱套。所以要实现透明与不透明共存：</p>
+<ol>
+<li>开启<strong>隐藏面消除</strong>功能  <code>gl.enable(gl.DEPTH_TEST)</code></li>
+<li>绘制所有不透明物体</li>
+<li>锁定用于隐藏面消除的<strong>深度缓冲区</strong>的写入操作，使其<strong>只读</strong>。<strong>深度缓冲区：</strong> 是一个中间对象，帮助进行隐藏面消除，存储深度信息:每个像素的归一化坐标z值。其对比z值，舍弃隐藏的片元，不会写入颜色缓冲区。<code>gl.depthMask(false)</code></li>
+<li>绘制所有半透明物体，需要按照深度排序，从后往前绘制。</li>
+<li>释放深度缓冲区，可读可写。<code>gl.depthMask(true)</code></li>
+</ol>
+<h3 id="切换着色器"><a href="#切换着色器" class="headerlink" title="切换着色器"></a>切换着色器</h3><p>当对于不同物体需要不同着色器进行绘制时，需要切换使用。</p>
+<p>为多个着色器对象创建多个程序对象，使用<code>gl.useProgram(program)</code>进行切换。</p>
+<h3 id="渲染到纹理"><a href="#渲染到纹理" class="headerlink" title="渲染到纹理"></a>渲染到纹理</h3><h3 id="加载三维模型"><a href="#加载三维模型" class="headerlink" title="加载三维模型"></a>加载三维模型</h3><h5 id="OBJ文件格式"><a href="#OBJ文件格式" class="headerlink" title="OBJ文件格式"></a>OBJ文件格式</h5><blockquote>
+<ol>
+<li><p>(#)开头行为注释</p>
+</li>
+<li><p>材质文件存储在外部MTL格式文件。<code>mtllib&lt;外部材质文件名&gt;</code></p>
+</li>
+<li><p>模型名称 <code>&lt;模型名称&gt;</code></p>
+</li>
+<li><p>顶点坐标 <code>v x y z [w]</code></p>
+</li>
+<li><p>指定某个材质 。列举使用这个材质的表面。材质被定义在引用的MTL文件中。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">usemtl&lt;材质名&gt;</span><br><span class="line">f v1 v2 v3 v4 ···</span><br><span class="line"></span><br><span class="line">f v1<span class="comment">//vn1 v2//vn2 v3//vn3 ···</span></span><br></pre></td></tr></table></figure>
+
+<p>其中v1为顶点索引值，从1开始。</p>
+<p>vn1,vn2为法线向量索引，从1开始。</p>
+</li>
+</ol>
+</blockquote>
+<h5 id="MTL文件格式"><a href="#MTL文件格式" class="headerlink" title="MTL文件格式"></a>MTL文件格式</h5><blockquote>
+<ol>
+<li><p>定义一个新材质<code>newmtl&lt;材质名&gt;</code></p>
+</li>
+<li><p>使用Ka、Kd和Ks定义表面环境色、漫反射、高光色。使用RGB格式，区间为[0.0，1.0]</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Ka <span class="number">0.000000</span> <span class="number">0.000000</span> <span class="number">0.000000</span></span><br><span class="line">Kd <span class="number">0.000000</span> <span class="number">0.000000</span> <span class="number">0.000000</span></span><br><span class="line">Ks <span class="number">0.000000</span> <span class="number">0.000000</span> <span class="number">0.000000</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Ns指定高光色权重，Ni指定表面光学密度，d指定透明度，illum指定光照模型。</p>
+</li>
+</ol>
+</blockquote>
+<h3 id="响应上下文丢失"><a href="#响应上下文丢失" class="headerlink" title="响应上下文丢失"></a>响应上下文丢失</h3><p>当其他程序接管了图形硬件，或者操作系统休眠，浏览器会失去这些资源，webgl绘图上下文就会丢失。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">webglcontextlost事件 当WebGL上下文丢失时触发</span><br><span class="line">webglcontextrestored事件  当浏览器完成WebGL系统重置后触发</span><br></pre></td></tr></table></figure>
+
+<p>当丢失上下文时，<code>getWebGLContext()</code>函数获得渲染上下文对象<code>gl</code>就失效了。在浏览器重置WebGL后需要重新完成在之前<code>gl</code>对象上的所有操作。如创建缓冲区，纹理对象，初始化着色器等。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/WebGL/" rel="tag"># WebGL</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2020/06/12/WGS84ToSZ%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E6%96%B9%E6%B3%95/" rel="prev" title="WGS84ToSZ坐标变换方法">
+      <i class="fa fa-chevron-left"></i> WGS84ToSZ坐标变换方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2020/06/12/WebGL%E4%BC%98%E5%8C%96%E7%82%B9/" rel="next" title="WebGL优化方法">
+      WebGL优化方法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#物体旋转"><span class="nav-number">1.</span> <span class="nav-text">物体旋转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选中物体"><span class="nav-number">2.</span> <span class="nav-text">选中物体</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#使用颜色缓冲区方法（简单）"><span class="nav-number">2.0.1.</span> <span class="nav-text">使用颜色缓冲区方法（简单）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HUD-平视显示器"><span class="nav-number">3.</span> <span class="nav-text">HUD(平视显示器)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#雾化"><span class="nav-number">4.</span> <span class="nav-text">雾化</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#w分量"><span class="nav-number">4.0.1.</span> <span class="nav-text">w分量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#绘制圆形点"><span class="nav-number">5.</span> <span class="nav-text">绘制圆形点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#α混合"><span class="nav-number">6.</span> <span class="nav-text">α混合</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#混合函数"><span class="nav-number">6.0.1.</span> <span class="nav-text">混合函数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#透明与不透明共存"><span class="nav-number">6.0.2.</span> <span class="nav-text">透明与不透明共存</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#切换着色器"><span class="nav-number">7.</span> <span class="nav-text">切换着色器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#渲染到纹理"><span class="nav-number">8.</span> <span class="nav-text">渲染到纹理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加载三维模型"><span class="nav-number">9.</span> <span class="nav-text">加载三维模型</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#OBJ文件格式"><span class="nav-number">9.0.1.</span> <span class="nav-text">OBJ文件格式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#MTL文件格式"><span class="nav-number">9.0.2.</span> <span class="nav-text">MTL文件格式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#响应上下文丢失"><span class="nav-number">10.</span> <span class="nav-text">响应上下文丢失</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="xcsf"
+      src="/blog/uploads/43439835.png">
+  <p class="site-author-name" itemprop="name">xcsf</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xcsf" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xcsf" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">xcsf</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/pisces.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

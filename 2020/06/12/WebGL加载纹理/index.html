@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="google-site-verification" content="5xoyo3HQ2-hM-1X3qmzMwjdHCjaieR_x651Un5NYCbY" />
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/uploads/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/uploads/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/uploads/favicon-16x16.png">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"xcsf.github.io","root":"/blog/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="WebGL坐标系统和纹理坐标1.WebGL坐标系统:先简单的认为是右手坐标系。  x轴最左边为-1，最右边为1; y轴最下边为-1，最上边为1; z轴朝向你的方向最大值为1，远离你的方向最大值为-1;  2.纹理坐标WebGL使用s和t命名纹理坐标(st坐标系统)。（还有以uv命名）  纹理图像四个角坐标为：左下(0.0,0.0),左上(0.0,1.0),右上(1.0,1.0),右下(1.0,0.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WebGL加载纹理">
+<meta property="og:url" content="https://xcsf.github.io/blog/2020/06/12/WebGL%E5%8A%A0%E8%BD%BD%E7%BA%B9%E7%90%86/index.html">
+<meta property="og:site_name" content="xcsf&#39;s Blog">
+<meta property="og:description" content="WebGL坐标系统和纹理坐标1.WebGL坐标系统:先简单的认为是右手坐标系。  x轴最左边为-1，最右边为1; y轴最下边为-1，最上边为1; z轴朝向你的方向最大值为1，远离你的方向最大值为-1;  2.纹理坐标WebGL使用s和t命名纹理坐标(st坐标系统)。（还有以uv命名）  纹理图像四个角坐标为：左下(0.0,0.0),左上(0.0,1.0),右上(1.0,1.0),右下(1.0,0.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/WebGL_TexCoord.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/Image_Coord.png">
+<meta property="article:published_time" content="2020-06-12T18:35:58.000Z">
+<meta property="article:modified_time" content="2022-09-16T15:07:31.920Z">
+<meta property="article:author" content="xcsf">
+<meta property="article:tag" content="WebGL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/WebGL_TexCoord.png">
+
+<link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/WebGL%E5%8A%A0%E8%BD%BD%E7%BA%B9%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>WebGL加载纹理 | xcsf's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">xcsf's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">noooooooooooob</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">25</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/xcsf" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://xcsf.github.io/blog/2020/06/12/WebGL%E5%8A%A0%E8%BD%BD%E7%BA%B9%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/uploads/43439835.png">
+      <meta itemprop="name" content="xcsf">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="xcsf's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          WebGL加载纹理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-12 18:35:58" itemprop="dateCreated datePublished" datetime="2020-06-12T18:35:58+00:00">2020-06-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-09-16 15:07:31" itemprop="dateModified" datetime="2022-09-16T15:07:31+00:00">2022-09-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/WebGL/" itemprop="url" rel="index"><span itemprop="name">WebGL</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/WebGL/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">笔记</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="WebGL坐标系统和纹理坐标"><a href="#WebGL坐标系统和纹理坐标" class="headerlink" title="WebGL坐标系统和纹理坐标"></a>WebGL坐标系统和纹理坐标</h3><h5 id="1-WebGL坐标系统"><a href="#1-WebGL坐标系统" class="headerlink" title="1.WebGL坐标系统:"></a>1.WebGL坐标系统:</h5><p>先简单的认为是右手坐标系。</p>
+<ol>
+<li>x轴最左边为-1，最右边为1;</li>
+<li>y轴最下边为-1，最上边为1;</li>
+<li>z轴朝向你的方向最大值为1，远离你的方向最大值为-1;</li>
+</ol>
+<h5 id="2-纹理坐标"><a href="#2-纹理坐标" class="headerlink" title="2.纹理坐标"></a>2.纹理坐标</h5><p>WebGL使用s和t命名纹理坐标(st坐标系统)。（还有以uv命名）</p>
+<blockquote>
+<p>纹理图像四个角坐标为：左下(0.0,0.0),左上(0.0,1.0),右上(1.0,1.0),右下(1.0,0.0)。纹理坐标与图像自身尺寸无关，其右上角坐标始终是(1.0,1.0)。</p>
+</blockquote>
+<p>讲纹理坐标与顶点坐标相对应，来确定怎样将纹理图像显示到相应的几何顶点坐标之间。</p>
+<h5 id="3-取样器变量"><a href="#3-取样器变量" class="headerlink" title="3.取样器变量"></a>3.取样器变量</h5><p>基本取样器类型： <strong>sampler2D</strong> 与 <strong>sampleCube</strong>  只能是uniform变量。</p>
+<p>数量受着色器支持的纹理单元最大数量限制。</p>
+<h3 id="纹理使用"><a href="#纹理使用" class="headerlink" title="纹理使用"></a>纹理使用</h3><h4 id="1-着色器实现"><a href="#1-着色器实现" class="headerlink" title="1.着色器实现"></a>1.着色器实现</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> VSHADER_SOURCE =</span><br><span class="line">  <span class="string">'attribute vec4 a_Position;\n'</span> +</span><br><span class="line">  <span class="string">'attribute vec2 a_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'varying vec2 v_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'void main() &#123;\n'</span> +</span><br><span class="line">  <span class="string">'  gl_Position = a_Position;\n'</span> +</span><br><span class="line">  <span class="string">'  v_TexCoord = a_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'&#125;\n'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> FSHADER_SOURCE =</span><br><span class="line">  <span class="string">'precision mediump float;\n'</span> +</span><br><span class="line">  <span class="string">'uniform sampler2D u_Sampler;\n'</span> +</span><br><span class="line">  <span class="string">'varying vec2 v_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'void main() &#123;\n'</span> +</span><br><span class="line">  <span class="string">'  gl_FragColor = texture2D(u_Sampler, v_TexCoord);\n'</span> +</span><br><span class="line">  <span class="string">'&#125;\n'</span>;</span><br><span class="line"><span class="keyword">let</span> a_Position = gl.getAttribLocation(gl.program, <span class="string">"a_Position"</span>);</span><br><span class="line"><span class="keyword">let</span> a_PointSize = gl.getAttribLocation(gl.program, <span class="string">"a_PointSize"</span>);</span><br><span class="line"><span class="keyword">let</span> a_TexCoord = gl.getAttribLocation(gl.program, <span class="string">"a_TexCoord"</span>);</span><br><span class="line"><span class="comment">//获取取样器变量u_Sampler</span></span><br><span class="line"><span class="keyword">let</span> u_Sampler = gl.getUniformLocation(gl.program, <span class="string">"u_Sampler"</span>);</span><br></pre></td></tr></table></figure>
+<p>顶点着色器中接受纹理坐标<code>a_TexCoord</code>，光栅化后传递给片元着色器。</p>
+<p>片元着色器中获取纹理像素（纹素）颜色。使用<code>GLSL ES</code>中:</p>
+<figure class="highlight plain"><figcaption><span>texture2D(sampler2D sampler, vec2 coord)```</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">从sampler指定的纹理上获取coord指定的纹理坐标处的像素。</span><br><span class="line"></span><br><span class="line">**参数：**</span><br><span class="line"></span><br><span class="line">sampler</span><br><span class="line"></span><br><span class="line">&gt; 纹理单元编号(texture unit number)。专用于纹理的数据类型&#96;&#96;&#96;sampler2D&#96;&#96;&#96;：绑定到&#96;&#96;&#96;gl.TEXTURE_2D&#96;&#96;&#96;的纹理数据类型</span><br><span class="line"></span><br><span class="line">coord</span><br><span class="line"></span><br><span class="line">&gt; 纹理坐标。</span><br><span class="line"></span><br><span class="line">**返回值：**</span><br><span class="line"></span><br><span class="line">&gt; 纹理坐标处的像素颜色值。格式由&#96;&#96;&#96;gl.texImage2D()&#96;&#96;&#96;的internalformat参数决定。</span><br><span class="line"></span><br><span class="line">纹理放大缩小方法的参数决定WebGL系统将以何种方式内插处片元。将&#96;&#96;&#96;texture2D()&#96;&#96;&#96;函数返回值赋值给&#96;&#96;&#96;gl_FragColor&#96;&#96;&#96;,即片元着色器将当前片元染成这个颜色。最终画出纹理。</span><br><span class="line"></span><br><span class="line">#### 2.设置纹理坐标</span><br><span class="line"></span><br><span class="line">向顶点着色器传入顶点坐标，在光栅化后传递给片元着色器。</span><br><span class="line">&#96;&#96;&#96;javascript</span><br><span class="line">&#x2F;&#x2F;顶点坐标、顶点尺寸、纹理坐标</span><br><span class="line">let verticesSizeColorTexCoords &#x3D; new Float32Array([</span><br><span class="line">    -0.5, 0.5, 10.0, 0.0, 1.0,</span><br><span class="line">    -0.5, -0.5, 20.0, 0.0, 0.0,</span><br><span class="line">    0.5, 0.5, 30.0, 1.0, 1.0,</span><br><span class="line">    0.5, -0.5, 40.0, 1.0, 0.0</span><br><span class="line">])</span><br><span class="line">let vertexSizeColorTexCoordBuffer &#x3D; gl.createBuffer();</span><br><span class="line">gl.bindBuffer(gl.ARRAY_BUFFER,vertexSizeColorTexCoordBuffer);</span><br><span class="line">gl.bufferData(gl.ARRAY_BUFFER, verticesSizeColorTexCoords, gl.STATIC_DRAW);</span><br><span class="line">let FSIZE &#x3D; this.verticesSizeColorTexCoords.BYTES_PER_ELEMENT;</span><br><span class="line">gl.vertexAttribPointer(this.a_Position, 2, gl.FLOAT, false, FSIZE * 5, 0);</span><br><span class="line">gl.enableVertexAttribArray(this.a_Position);</span><br><span class="line">gl.vertexAttribPointer( this.a_PointSize, 1, gl.FLOAT, false, FSIZE * 5, FSIZE * 2 );</span><br><span class="line">gl.enableVertexAttribArray(this.a_PointSize);</span><br><span class="line">gl.vertexAttribPointer(this.a_TexCoord, 2, gl.FLOAT, false, FSIZE * 5, FSIZE * 3);</span><br><span class="line">gl.enableVertexAttribArray(this.a_TexCoord);</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-配置加载纹理"><a href="#3-配置加载纹理" class="headerlink" title="3.配置加载纹理"></a>3.配置加载纹理</h4><ol>
+<li>创建纹理对象。纹理对象用来管理WebGL系统中的纹理。</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Create a texture object</span></span><br><span class="line"><span class="keyword">let</span> texture = gl.createTexture();</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>加载纹理图像。使用Image对象<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Create the image object</span></span><br><span class="line"><span class="keyword">let</span> image = <span class="keyword">new</span> Image();</span><br><span class="line"><span class="comment">// Register the event handler to be called on loading an image</span></span><br><span class="line">image.onload = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    loadTexture(gl, texture, u_Sampler, image);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// Tell the browser to load an image</span></span><br><span class="line">image.src = <span class="built_in">require</span>(<span class="string">"@/assets/sky.jpg"</span>);</span><br></pre></td></tr></table></figure></li>
+<li>配置纹理。(<code>loadTexture()</code>)</li>
+</ol>
+<p><strong>图像Y轴反转</strong> WebGL中st坐标系统与PNG，BMP，JPG等图片格式坐标系统y轴相反。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/pixelStorei" target="_blank" rel="noopener">WebGLRenderingContext.pixelStorei()</a></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/WebGL_TexCoord.png" alt="WebGL_TexCoord"><br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/Image_Coord.png" alt="Image_Coord"></p>
+<p><strong>激活纹理单元(texture unit)</strong></p>
+<p>WebGL使用<strong>纹理单元</strong>来同时使用多个纹理。每个纹理单元有一个<strong>单元编号</strong>,内置变量<code>gl.TEXTURE0 gl.TEXTURE1 gl.TEXTURE2 ...</code>各表示一个纹理单元。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/activeTexture" target="_blank" rel="noopener">WebGLRenderingContext.activeTexture()</a></p>
+<p><strong>绑定纹理对象</strong></p>
+<p>同缓冲区很像，对缓冲区操作前，要先绑定缓冲区对象至一个target上。对纹理对象操作前需要绑定到纹理绑定点(目标)(gl.TEXTURE_2D)。没法直接操作纹理对象，必须通过将纹理对象绑定到纹理单元上，然后操作纹理单元操作纹理对象</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/bindTexture" target="_blank" rel="noopener">WebGLRenderingContext.bindTexture()</a></p>
+<p>该方法完成俩任务：开启纹理对象，以及将纹理对象绑定到纹理单元上</p>
+<p><strong>配置纹理对象参数</strong></p>
+<p>设置纹理图像映射到图形上的方式。1.如何根据纹理坐标获取纹素。2.按那种方式重复。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/texParameter" target="_blank" rel="noopener">WebGLRenderingContext.texParameter<a href="">fi</a></a></p>
+<p><strong>将图像分配给纹理对象</strong></p>
+<p>示例使用JPG格式纹理图片，该格式像素使用RGB三个分量表示。texImage2D方法将图像存储在WebGL的纹理对象中。通过internalformat参数告诉WebGL纹理图像格式类型。internalformat必须与format指定纹理图像数据格式一致。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/texImage2D" target="_blank" rel="noopener">WebGLRenderingContext.texImage2D()</a></p>
+<p><strong>将纹理单元传递给片元着色器</strong></p>
+<p>通过第二个参数指定纹理单元编号(<strong>gl.TEXTURE0中的0</strong>)将纹理对象传给u_Sampler。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/uniform" target="_blank" rel="noopener">WebGLRenderingContext.uniform[1234][fi][v]</a></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">loadTexture(gl, texture, u_Sampler, image) &#123;</span><br><span class="line">    <span class="comment">// Flip the image's y axis</span></span><br><span class="line">    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, <span class="number">1</span>); </span><br><span class="line">    <span class="comment">// Enable texture unit0</span></span><br><span class="line">    gl.activeTexture(gl.TEXTURE0);</span><br><span class="line">    <span class="comment">// Bind the texture object to the target</span></span><br><span class="line">    gl.bindTexture(gl.TEXTURE_2D, texture);</span><br><span class="line">    <span class="comment">// Set the texture parameters</span></span><br><span class="line">    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);</span><br><span class="line">    <span class="comment">// Set the texture image</span></span><br><span class="line">    gl.texImage2D(gl.TEXTURE_2D, <span class="number">0</span>, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);</span><br><span class="line">    <span class="comment">// Set the texture unit 0 to the sampler</span></span><br><span class="line">    gl.uniform1i(u_Sampler, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/WebGL/" rel="tag"># WebGL</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2020/06/12/%E5%9B%BE%E5%85%83%E8%A3%85%E9%85%8D%E5%88%B0%E5%85%89%E6%A0%85%E5%8C%96%E4%B8%8Evarying%E5%8F%98%E9%87%8F/" rel="prev" title="WebGL 图元装配到光栅化与varying变量">
+      <i class="fa fa-chevron-left"></i> WebGL 图元装配到光栅化与varying变量
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2020/06/12/WGS84ToSZ%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E6%96%B9%E6%B3%95/" rel="next" title="WGS84ToSZ坐标变换方法">
+      WGS84ToSZ坐标变换方法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebGL坐标系统和纹理坐标"><span class="nav-number">1.</span> <span class="nav-text">WebGL坐标系统和纹理坐标</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-WebGL坐标系统"><span class="nav-number">1.0.1.</span> <span class="nav-text">1.WebGL坐标系统:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-纹理坐标"><span class="nav-number">1.0.2.</span> <span class="nav-text">2.纹理坐标</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-取样器变量"><span class="nav-number">1.0.3.</span> <span class="nav-text">3.取样器变量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#纹理使用"><span class="nav-number">2.</span> <span class="nav-text">纹理使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-着色器实现"><span class="nav-number">2.1.</span> <span class="nav-text">1.着色器实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-配置加载纹理"><span class="nav-number">2.2.</span> <span class="nav-text">3.配置加载纹理</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="xcsf"
+      src="/blog/uploads/43439835.png">
+  <p class="site-author-name" itemprop="name">xcsf</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xcsf" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xcsf" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">xcsf</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/pisces.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

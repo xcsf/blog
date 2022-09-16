@@ -1,0 +1,1437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>ArcGIS API for Javascript 4.X扩展Echarts4.2.0</title>
+    <url>/blog/2020/06/12/ArcGIS-API-for-Javascript-4-X%E6%89%A9%E5%B1%95Echarts4-2-0/</url>
+    <content><![CDATA[<p><a href="https://github.com/xcsf/ArcGIS-API-for-JS-with-Echarts" target="_blank" rel="noopener">看仓库：https://github.com/xcsf/ArcGIS-API-for-JS-with-Echarts</a></p>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>ESRI</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Cesium与几何变换</title>
+    <url>/blog/2020/06/12/Cesium%E4%B8%8E%E5%87%A0%E4%BD%95%E5%8F%98%E6%8D%A2/</url>
+    <content><![CDATA[<h3 id="一、了解模型矩阵、视图矩阵、投影矩阵"><a href="#一、了解模型矩阵、视图矩阵、投影矩阵" class="headerlink" title="一、了解模型矩阵、视图矩阵、投影矩阵"></a>一、了解模型矩阵、视图矩阵、投影矩阵</h3><p>计算机在显示一个三维物体时，本质都是对相应的 <strong>顶点</strong> 坐标进行计算，进而渲染出图元、片元，得到显示屏上看到的结果。</p>
+<p>而最原本的模型的各个顶点坐标并不是在<strong>世界坐标系</strong>中建立的(世界坐标系即下一节的球心坐标(ECEF))。以下称原本的模型坐标系为<strong>模型本体坐标系</strong></p>
+<p>那么我们需要将模型在世界坐标系下进行展示和运动，就得将模型所有顶点都转换到世界坐标系下。 这个转换过程可以用4<em>4的矩阵表示，称为*</em>模型矩阵(Model Matrix)**。</p>
+<p>现在模型通过<strong>模型矩阵</strong>转换成了世界坐标。需要用一个<strong>相机(Camera)</strong>来模拟人眼观测位置，因此，需要根据相机的位置和观察方位，将<strong>世界坐标系</strong>中的<strong>所有顶点(不只是模型)</strong>坐标转换为<strong>视图坐标系</strong> (也称相机坐标系) 中的坐标，这个转换过程也可用4<em>4的矩阵表示，称为*</em>视图矩阵(View Matrix)**</p>
+<p>在视图坐标系中，所有的点都是三维的，最终要在显示器上展示。要将三维坐标投影到二维平面上去，这个4<em>4的矩阵表示，称为 *</em>(透视)投影矩阵(Perspective projection Matrix)**</p>
+<p>将模型顶点坐标与三个矩阵相乘后即得到屏幕(裁剪)坐标。</p>
+<h3 id="二、了解球心坐标-ECEF-与本地坐标-NEU"><a href="#二、了解球心坐标-ECEF-与本地坐标-NEU" class="headerlink" title="二、了解球心坐标(ECEF)与本地坐标(NEU)"></a>二、了解球心坐标(ECEF)与本地坐标(NEU)</h3><p><strong>本地坐标系(NEU):</strong> 一种地方空间直角系，原点为O，其北向坐标轴(N 坐标)为过O点的子午线的切线,指北为正。其东向坐标轴(E坐标)为过O点的椭球的平行圈的切线,指东为正。天顶向坐标轴(U坐标),为过O点垂直于N轴与E轴，指向天顶为正。</p>
+<p><strong>球心坐标系(ECEF,Earth-Centered，Earth-Fixed):</strong> 以地球为中心,坐标轴以International Reference Pole(IRM)和International Reference Meridian(IRM)为准，国际参考极点和国际参考子午线，遵照地表所确定。(earth-fixed)</p>
+<p><a href="https://docs.inertialsense.com/user-manual/reference/coordinate_frames/" target="_blank" rel="noopener">See docs.inertialsense.com</a></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/ECEFandNED.jpg" alt=""></p>
+<h3 id="三、平移、旋转、缩放"><a href="#三、平移、旋转、缩放" class="headerlink" title="三、平移、旋转、缩放"></a>三、平移、旋转、缩放</h3><p>要用变换矩阵用来表示平移，需要将原本为(x,y,z)的点加上一维，即(x,y,z,w)这种四元组的方式来表达坐标，等同于三维坐标(x/w,y/w,z/w)，称为 <strong>(齐次坐标)</strong>。</p>
+<blockquote>
+<p>齐次坐标系使得我们可以在一中特殊的方程组中求出解，这个方程组中每一个方程都表示一个与系统中其他直线平行的直线。我们知道在欧几里得空间中，对这种方程组是无解的，因为他们没有交点。然而在现实世界中我们是可以看到两条平行线相交的。</p>
+</blockquote>
+<blockquote>
+<p>规定（x, y, z, 0）表示一个向量，（x, y, z, 1）或（x’, y’, z’, 2）等w不为0时来表示点。</p>
+</blockquote>
+<p>对于平移变换矩阵:<br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/translationmatrix.png" alt="平移变换矩阵"></p>
+<p>对于X旋转变换矩阵:</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixX.png" alt="X旋转变换矩阵"></p>
+<p>对于Y旋转变换矩阵:</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixY.png" alt="Y旋转变换矩阵"></p>
+<p>对于Z旋转变换矩阵:</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/rotationmatrixZ.png" alt="Z旋转变换矩"></p>
+<p>对于缩放变换矩阵:</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/scalarmatrix.png" alt="缩放变换矩阵"></p>
+<p>对于任意轴旋转:</p>
+<p>首先将旋转轴平移至与坐标轴重合，然后进行旋转，最后再平移回去。</p>
+<p>第一步平移</p>
+<p>很简单，坐标做减法就可以得出。</p>
+<p>第二步旋转</p>
+<p>将向量旋转至与Z轴重合。即先绕X轴转角度为α；再绕Y轴旋转至与Z轴重合，旋转的角度为-β。</p>
+<p>绕Z轴旋转角度θ</p>
+<p>第三步</p>
+<p>反向旋转平移回去，得到结果。即绕Y轴旋转角度为β；绕X轴转角度为-α；反向平移。</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotation.jpg" alt=""></p>
+<p>如果不需要平移，最终结果公式为：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/anyrotationresult.gif" alt=""></p>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>Cesium</category>
+      </categories>
+      <tags>
+        <tag>Cesium</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>QEM边折叠算法</title>
+    <url>/blog/2020/06/13/QEM%E8%BE%B9%E6%8A%98%E5%8F%A0%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h3 id="一、算法相关资料"><a href="#一、算法相关资料" class="headerlink" title="一、算法相关资料"></a>一、算法相关资料</h3><p>算法来自论文：<br><a href="https://www.researchgate.net/publication/2417323_Surface_Simplification_Using_Quadric_Error_Metrics" target="_blank" rel="noopener">Surface Simplification Using Quadric Error Metrics</a></p>
+<p>通过计算网格图形上的每一条边的权重，每次移除最小权重的边。重复这个过程达到简化效果。</p>
+<h3 id="二、算法步骤"><a href="#二、算法步骤" class="headerlink" title="二、算法步骤"></a>二、算法步骤</h3><p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM%E7%AE%97%E6%B3%95%E6%AD%A5%E9%AA%A4.png" alt="QEM算法步骤"></p>
+<ol>
+<li>初始化所有顶点的 <strong>Q</strong> 矩阵。</li>
+<li>选择所有有效边。 (所有联通边 <strong>(v1, v2)</strong> 、或者长度小于某一个阈值的边。)</li>
+<li>计算所有有效边的误差 <strong>¯vT(Q1+ Q2)¯v</strong> 作为这条边的cost。</li>
+<li>将所有的边按照cost的权值放到一个最小堆里。</li>
+<li>每次移除最小的边，并且更新包含着<strong>v1</strong>的所有有效边的代价。</li>
+</ol>
+<h4 id="Q矩阵计算方法"><a href="#Q矩阵计算方法" class="headerlink" title="Q矩阵计算方法"></a>Q矩阵计算方法</h4><p>基础知识<a href="https://www.cnblogs.com/kesalin/archive/2009/09/09/plane_equation.html" target="_blank" rel="noopener">平面方程(Plane Equation)</a></p>
+<p>定义顶点的误差为顶点到该顶点相交的三角形的平面的距离平方和：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM%E8%B7%9D%E7%A6%BB%E5%B9%B3%E6%96%B9%E5%92%8C.png" alt="QEM距离平方和"></p>
+<ul>
+<li><p>其中<strong>P</strong>为平面方程 <strong>[a,b,c,d]T</strong> , <strong>v</strong>为顶点<strong>[x,y,z,1]</strong>，法向量 <strong>n = [a,b,c]</strong></p>
+</li>
+<li><p><strong>(P·v)/|n|</strong> 为点<strong>v</strong>到平面<strong>P</strong>的距离</p>
+</li>
+<li><p><strong>n</strong>模长等于1时，<strong>P·v</strong>即点到平面距离。 </p>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM%E8%B7%9D%E7%A6%BB%E5%B9%B3%E6%96%B9%E5%92%8C2.png" alt="QEM距离平方和"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM%E7%9F%A9%E9%98%B5Kp.png" alt="QEM矩阵Kp"></p>
+<p>这个基本二次误差<strong>Kp</strong>可以用来求空间中任意点到平面<strong>P</strong>的平方距离。我们可以把这些基本二次曲面加起来，用一个矩阵<strong>Q</strong>表示整个平面集合。</p>
+<h4 id="新顶点位置计算"><a href="#新顶点位置计算" class="headerlink" title="新顶点位置计算"></a>新顶点位置计算</h4><ol>
+<li><p>选择<strong>v1</strong> 、<strong>v2</strong>、<strong>(v1+v2)/2</strong>中选择一个；</p>
+</li>
+<li><p>对二次项式Δ(v)求导，当求导等于0时；</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM%E6%B1%82%E5%AF%BC.png" alt="QEM求导"></p>
+<p>当左边矩阵可逆时，可求解：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM%E5%8F%AF%E9%80%86.png" alt="QEM可逆"></p>
+<p>否则，根据第一条策略。</p>
+</li>
+</ol>
+<h4 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">calculatorEdgeDelta</span>(<span class="params">geometry, edge</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> mat = <span class="keyword">new</span> THREE.Matrix4()</span><br><span class="line">    <span class="keyword">let</span> deltaV = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">//计算Q1+Q2</span></span><br><span class="line">    <span class="keyword">let</span> q1 = calculatorVertexDelta(geometry, edge.a).elements</span><br><span class="line">    <span class="keyword">let</span> q2 = calculatorVertexDelta(geometry, edge.b).elements</span><br><span class="line">    mat.elements = q1.map(<span class="function">(<span class="params">e, i</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> e + q2[i]</span><br><span class="line">    &#125;)</span><br><span class="line">    edge.midv = calculatorVertexPos(geometry, edge)</span><br><span class="line">    <span class="comment">//计算vT (Q1+Q2) v 得到边的代价(cost)deltaV</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">0</span>; j &lt; <span class="number">4</span>; j++) &#123;</span><br><span class="line">        <span class="keyword">let</span> t = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> k = <span class="number">0</span>; k &lt; <span class="number">4</span>; k++) &#123;</span><br><span class="line">            <span class="comment">// console.log(edge.v.getComponent(k))</span></span><br><span class="line">            t += edge.midv.getComponent(k) * mat.elements[j * <span class="number">4</span> + k];</span><br><span class="line">        &#125;</span><br><span class="line">        deltaV += t * edge.midv.getComponent(j)</span><br><span class="line">    &#125;</span><br><span class="line">    edge.deltaV = deltaV</span><br><span class="line">    <span class="keyword">return</span> edge</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//计算顶点Q矩阵</span></span><br><span class="line"><span class="comment">//传入一个顶点  找到与其关联的边 再找到 面  求Kp二次基本误差矩阵PTP之和Q 并返回 </span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">calculatorVertexDelta</span>(<span class="params">geometry, vIndex</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> result = <span class="keyword">new</span> THREE.Matrix4()</span><br><span class="line">    result.elements[<span class="number">0</span>] = <span class="number">0</span></span><br><span class="line">    result.elements[<span class="number">5</span>] = <span class="number">0</span></span><br><span class="line">    result.elements[<span class="number">10</span>] = <span class="number">0</span></span><br><span class="line">    result.elements[<span class="number">15</span>] = <span class="number">0</span></span><br><span class="line">    <span class="keyword">let</span> tmp = <span class="keyword">new</span> THREE.Vector4()</span><br><span class="line">    <span class="keyword">let</span> f = findFaceWithVindex(geometry, vIndex)</span><br><span class="line">    <span class="comment">//找出与顶点vIndex关联的面 得到其平面方程[a,b,c,d] 计算Kp矩阵之和Q</span></span><br><span class="line">    f.map(<span class="function"><span class="params">face</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">//计算平面方程系数abcd 即 法向量(a,b,c)</span></span><br><span class="line">        <span class="comment">//d = -(ax+by+cz)</span></span><br><span class="line">        <span class="keyword">let</span> &#123; x, y, z &#125; = face.normal;</span><br><span class="line">        <span class="keyword">let</span> d = -geometry.vertices[face.a].dot(face.normal)</span><br><span class="line">        tmp.set(x, y, z, d)</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">0</span>; j &lt; <span class="number">4</span>; j++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">let</span> k = <span class="number">0</span>; k &lt; <span class="number">4</span>; k++) &#123;</span><br><span class="line">                result.elements[j * <span class="number">4</span> + k] += tmp.getComponent(j) * tmp.getComponent(k);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h4><p>下图是使用three.js 实现QEM算法。对OBJ模型动态计算过程。可以看到对于简单模型，简化效果基本满足。经过多个模型测试，对于特殊形状模型简化容易出现破面现象。</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/QEM%E7%AE%97%E6%B3%95%E6%95%88%E6%9E%9C.gif" alt="QEM求导"></p>
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vue响应式原理</title>
+    <url>/blog/2020/06/12/Vue%E5%93%8D%E5%BA%94%E5%BC%8F%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h2 id="Vue响应式原理-Reactivity-System"><a href="#Vue响应式原理-Reactivity-System" class="headerlink" title="Vue响应式原理  Reactivity System"></a>Vue响应式原理  Reactivity System</h2><h3 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1.介绍"></a>1.介绍</h3><p>​    根据尤雨溪在FrontEnd Master上面的一个WorkShop，通过讲解一些基础来更好的理解Vue。自己对着<a href="https://github.com/heruifeng1/Vue-WorkShop-Basic" target="_blank" rel="noopener">这个仓库里的练习</a>和搜索引擎大法完成。</p>
+<h3 id="2-Reactivity-System"><a href="#2-Reactivity-System" class="headerlink" title="2.Reactivity System"></a>2.Reactivity System</h3><p>​    响应式指的就是当我们改变了某个状态时候，会自动的更新系统中的相关连的变化。这里我们通常指改变状态后怎么变更DOM。Vue是怎么跟踪变化，做到响应式的。</p>
+<h3 id="3-页面开发中的同步问题"><a href="#3-页面开发中的同步问题" class="headerlink" title="3.页面开发中的同步问题"></a>3.页面开发中的同步问题</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//页面可以自动同步state</span></span><br><span class="line"><span class="comment">//一个state的追踪函数 onStateChanged()</span></span><br><span class="line"><span class="comment">//当state改变时更新页面</span></span><br><span class="line">onStateChanged(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  view = render(state)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">//它内部大概是实现</span></span><br><span class="line"><span class="keyword">let</span> update, state</span><br><span class="line"><span class="keyword">const</span> onStateChanged = <span class="function"><span class="params">_update</span> =&gt;</span> &#123;</span><br><span class="line">  update = _update</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//接受一个newState,更新oldState，然后调用update()</span></span><br><span class="line"><span class="comment">//React中每次去setState就好</span></span><br><span class="line"><span class="keyword">const</span> setState = <span class="function"><span class="params">newState</span> =&gt;</span> &#123;</span><br><span class="line">  state = newState</span><br><span class="line">  update()</span><br><span class="line">&#125;</span><br><span class="line">setState(&#123; <span class="attr">a</span>: <span class="number">5</span> &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//Vue or Angular 直接访问state.a</span></span><br><span class="line">state.a = <span class="number">5</span></span><br><span class="line"><span class="comment">//Ang使用的是脏检查，而Vue中每一个state变得reactive（使用object.defineProperty）</span></span><br></pre></td></tr></table></figure>
+
+<p>​    我们也要实现一个类似onStateChanged()这样的函数。我们下面把这个函数改名为autorun()，我们传入一个update()函数给这个autorun()，它则自动去更新视图。在Vue中则是直接改变state.a，就会自动触发更新DOM。</p>
+<h3 id="4-Vue-WorkShop-Basic"><a href="#4-Vue-WorkShop-Basic" class="headerlink" title="4.Vue-WorkShop-Basic"></a>4.Vue-WorkShop-Basic</h3><h4 id="1-1-Getters-and-Setters"><a href="#1-1-Getters-and-Setters" class="headerlink" title="1-1  Getters and Setters"></a>1-1  <a href="https://github.com/heruifeng1/Vue-WorkShop-Basic/blob/master/1-reactivity/1.1.md" target="_blank" rel="noopener">Getters and Setters</a></h4><pre><code>&gt; expected usage:
+&gt;
+&gt;<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&gt;<span class="function"><span class="keyword">function</span> <span class="title">observe</span> (<span class="params">obj</span>) </span>&#123;</span><br><span class="line"><span class="comment">// Implement this!</span></span><br><span class="line">&gt;&#125;</span><br><span class="line"></span><br><span class="line">&gt;<span class="keyword">const</span> obj = &#123; <span class="attr">foo</span>: <span class="number">123</span> &#125;</span><br><span class="line">&gt;observe(obj)</span><br><span class="line"></span><br><span class="line">&gt;obj.foo <span class="comment">// should log: 'getting key "foo": 123'</span></span><br><span class="line">&gt;obj.foo = <span class="number">234</span> <span class="comment">// should log: 'setting key "foo" to 234'</span></span><br><span class="line">&gt;obj.foo <span class="comment">// should log: 'getting key "foo": 234'</span></span><br></pre></td></tr></table></figure></code></pre><p>​    答案：</p>
+<p>​        这个函数目的就是，使传入的state对象的读写都会被监测到。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">observe</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">  <span class="built_in">Object</span>.keys(obj).forEach(<span class="function">(<span class="params">key</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">let</span> temp = obj[key]</span><br><span class="line">    <span class="built_in">Object</span>.defineProperty(obj,key,&#123;</span><br><span class="line">      <span class="keyword">get</span>:function()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'get count is :'</span>, temp)</span><br><span class="line">        <span class="keyword">return</span> temp;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="keyword">set</span>:function(newvalue)&#123;</span><br><span class="line">        temp = newvalue;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'set count is: '</span>,temp)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-2-Dependency-Tracking"><a href="#1-2-Dependency-Tracking" class="headerlink" title="1-2 Dependency Tracking"></a>1-2 <a href="https://github.com/heruifeng1/Vue-WorkShop-Basic/blob/master/1-reactivity/1.2.md" target="_blank" rel="noopener">Dependency Tracking</a></h4><p>​    实现一个Dep类，里面有<code>depend</code> 与<code>notify</code>两个方法。</p>
+<p>​    实现autorun()。接受update()函数。</p>
+<p>​    update()函数中可以调用dep.depend()，来显式的添加依赖到dep对象</p>
+<p>​    然后，可以调用dep.notify()来再次运行</p>
+<pre><code>&gt; The full usage should look like this:
+&gt;
+&gt; <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> dep = <span class="keyword">new</span> Dep()</span><br><span class="line"></span><br><span class="line">autorun(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  dep.depend()</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'updated'</span>)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// should log: "updated"</span></span><br><span class="line"></span><br><span class="line">dep.notify()</span><br><span class="line"><span class="comment">// should log: "updated"</span></span><br></pre></td></tr></table></figure></code></pre><p>​    分析下：</p>
+<p>​    这个dep类里实现发布订阅模式。</p>
+<p>​    update()需要被注册到dep对象中，这样dep.notify()就可以调用里面的注册了的函数</p>
+<p>​    dep.depend()目的是将需要执行的update()函数注册到dep对象中。</p>
+<p>​    autorun()，负责调用这个update()函数，比如更新视图</p>
+<p>​    答案：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">window</span>.Dep = <span class="class"><span class="keyword">class</span> <span class="title">Dep</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>()&#123;</span><br><span class="line">    <span class="keyword">this</span>.subscribers = <span class="keyword">new</span> <span class="built_in">Set</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  depend()&#123;</span><br><span class="line">    <span class="keyword">if</span>(activeUpdate)&#123;</span><br><span class="line">      <span class="keyword">this</span>.subscribers.add(activeUpdate)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'is depended'</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  notify()&#123;</span><br><span class="line">    <span class="keyword">this</span>.subscribers.forEach(<span class="function">(<span class="params">subscriber</span>)=&gt;</span>&#123;subscriber()&#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> activeUpdate;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">autorun</span> (<span class="params">update</span>) </span>&#123;</span><br><span class="line">  <span class="comment">//这里使用一个WrappedUpdate包裹住update，运行时update中调用的depend可以</span></span><br><span class="line">  <span class="comment">//拿到activeUpdate，而且这样做我们可以知道当前正在执行的是哪一个update()</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">WrappedUpdate</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    activeUpdate = WrappedUpdate</span><br><span class="line">    update()</span><br><span class="line">    activeUpdate = <span class="literal">null</span></span><br><span class="line">  &#125;</span><br><span class="line">  WrappedUpdate()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-3-Mini-Observer"><a href="#1-3-Mini-Observer" class="headerlink" title="1-3 Mini Observer"></a>1-3 <a href="https://github.com/heruifeng1/Vue-WorkShop-Basic/blob/master/1-reactivity/1.3.md" target="_blank" rel="noopener">Mini Observer</a></h4><p>​    observe()接收对象中的属性并使其具有响应式。对于每个转换后的属性，它都被分配一个Dep实例，Dep实例跟踪订阅更新函数的列表，并在调用其setter时触发它们重新运行。</p>
+<p>​    autorun()接受一个更新函数，并在更新函数订阅的属性发生变化时重新运行它。如果更新函数在计算期间依赖于某个属性，则该函数被称为“订阅”该属性。</p>
+<blockquote>
+<p>They should support the following usage:</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> state = &#123;</span><br><span class="line">  count: <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">observe(state)</span><br><span class="line"></span><br><span class="line">autorun(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(state.count)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// should immediately log "count is: 0"</span></span><br><span class="line"></span><br><span class="line">state.count++</span><br><span class="line"><span class="comment">// should log "count is: 1"</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>答案：</p>
+<p>​    也就是吧之前的结合起来，具体看codepen↓</p>
+<p>​    <a href="https://codepen.io/xcsf/pen/gJdRoK?editors=0011" target="_blank" rel="noopener">在线(codepen)</a></p>
+]]></content>
+      <categories>
+        <category>杂</category>
+      </categories>
+      <tags>
+        <tag>Vue</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WGS84ToSZ坐标变换方法</title>
+    <url>/blog/2020/06/12/WGS84ToSZ%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h3 id="一、相关概念"><a href="#一、相关概念" class="headerlink" title="一、相关概念"></a>一、相关概念</h3><p>大地坐标系（B, L, H) (纬度、经度、高度):B为过坐标点椭球面的法线与赤道面交角，L为过坐标点的子午线与起始子午线的夹角，H为坐标点沿法线到椭球面的距离。</p>
+<p>空间直角坐标(X, Y, Z):Z轴与旋转椭球的短轴重合，向北为正，X轴与赤道面和首子午面的交线重合，向东为正。Y轴与XZ平面垂直构成右手系。</p>
+<p>参心坐标系：</p>
+<p>参考椭球的几何中心为原点的大地坐标系。通常分为：参心空间直角坐标系（以x，y，z为其坐标元素）和参心大地坐标系（以B，L，H为其坐标元素）。</p>
+<p>地心坐标系：</p>
+<p>以地球质心(总椭球的几何中心)为原点的大地坐标系。通常分为地心空间直角坐标系(以x，y，z为其坐标元素)和地心大地坐标系(以B，L，H为其坐标元素)。</p>
+<p>椭球长半轴:<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%95%BF%E5%8D%8A%E8%BD%B4.gif" alt=""></p>
+<p>椭球扁率:<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E6%89%81%E7%8E%87.gif" alt=""></p>
+<p>椭球短半轴：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%AD%E5%8D%8A%E8%BD%B4.png" alt=""></p>
+<p>椭球第一偏心率 ：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%AC%AC%E4%B8%80%E5%81%8F%E5%BF%83%E7%8E%87.png" alt=""></p>
+<p>椭球第二偏心率 ：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%AC%AC%E4%BA%8C%E5%81%8F%E5%BF%83%E7%8E%87.png" alt=""></p>
+<p>卯酉圈曲率半径N：子午圈曲率半径M：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E6%9B%B2%E7%8E%87%E5%8D%8A%E5%BE%84.png" alt=""></p>
+<p>补充：</p>
+<h3 id="二、转换方法"><a href="#二、转换方法" class="headerlink" title="二、转换方法"></a>二、转换方法</h3><h5 id="1-已知WGS–84大地坐标（BLH）-单位：度-分秒"><a href="#1-已知WGS–84大地坐标（BLH）-单位：度-分秒" class="headerlink" title="1.已知WGS–84大地坐标（BLH）(单位：度.分秒)"></a>1.已知WGS–84大地坐标（BLH）(单位：度.分秒)</h5><p>1）BLH》》十进制度》》弧度制</p>
+<p>​    可参考EXCEL中方法：</p>
+<p>​    RADIANS(25*B/9-2*INT(B)/3-INT(100*B)/90)</p>
+<p>2）转为北京54空间直角坐标系(克拉索夫斯基椭球)(BLH-&gt;XYZ)</p>
+<p>​    参考公式：</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/BLH2XYX.jpg" alt="BLH2XYX"></p>
+<p>​    PS:这里WGS84为地心坐标系而北京54为参心坐标系，（<strong>个人认为因为他们空间直角坐标系的轴方向一致，所以此处只需要添加XYZ的坐标偏移参数无需其他是三个旋转参数以及一个尺度参数</strong>），计算完后需要给XYZ加上常量，具体数值如下:</p>
+<p>​    X:-22,Y:+188,Z+30.5</p>
+<p>3)北京54的空间直角坐标系转换为其大地坐标系（ XYZ → BLH ）</p>
+<p>​    参考方法:</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH.jpg" alt="XYZ2BLH"></p>
+<p>​    求解方法：</p>
+<p>​    1.迭代法：</p>
+<p>​    取B初值为:<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/B%E5%88%9D%E5%80%BC.jpg" alt=""></p>
+<p>​    C#代码实现：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;输入XYZ</span><br><span class="line">double X &#x3D; -2368953, Y &#x3D; 5382025, Z &#x3D; 2462584;</span><br><span class="line">&#x2F;&#x2F;相关参数</span><br><span class="line">double a, N, W, e1, r, sinB;</span><br><span class="line">double B1, B0, H1, H0, B, L, H;</span><br><span class="line">a &#x3D; 6378245;</span><br><span class="line">e1 &#x3D; 0.006693421622966;</span><br><span class="line">r &#x3D; X * X + Y * Y;</span><br><span class="line">L &#x3D; Math.Atan(Y &#x2F; X) + Math.PI;</span><br><span class="line">B0 &#x3D; Math.Atan(Z &#x2F; Math.Sqrt(r));</span><br><span class="line">sinB &#x3D; Math.Sin(B0);</span><br><span class="line">W &#x3D; Math.Sqrt(1 - e1 * sinB * sinB);</span><br><span class="line">N &#x3D; a &#x2F; W;</span><br><span class="line">H0 &#x3D; Z &#x2F; sinB - N * (1 - e1);</span><br><span class="line">int maxIter &#x3D; 100;</span><br><span class="line">int iter &#x3D; 0;</span><br><span class="line">while (true)</span><br><span class="line">&#123;</span><br><span class="line">    iter++;</span><br><span class="line">    B1 &#x3D; Math.Atan2(Z * (N + H0), Math.Sqrt(r) * (N * (1 - e1) + H0));</span><br><span class="line">    sinB &#x3D; Math.Sin(B1);</span><br><span class="line">    W &#x3D; Math.Sqrt(1 - e1 * sinB * sinB);</span><br><span class="line">    N &#x3D; a &#x2F; W;</span><br><span class="line">    H1 &#x3D; Z &#x2F; sinB - N * (1 - e1);</span><br><span class="line">    if ((Math.Abs(B1 - B0) &lt; Math.Pow(10, -15) &amp;&amp; Math.Abs(H1 - H0) &lt; Math.Pow(10, -15)) || iter &gt; maxIter)</span><br><span class="line">    &#123;</span><br><span class="line">        break;</span><br><span class="line">    &#125;</span><br><span class="line">    B0 &#x3D; B1;</span><br><span class="line">    H0 &#x3D; H1;</span><br><span class="line">&#125;</span><br><span class="line">B &#x3D; B1;</span><br><span class="line">H &#x3D; H1;</span><br></pre></td></tr></table></figure>
+
+<p>​    2.直接求解</p>
+<p>​    参考公式：</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH2.jpg" alt="XYZ2BLH2"></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;输入XYZ</span><br><span class="line">double X &#x3D; -2368953, Y &#x3D; 5382025, Z &#x3D; 2462584;</span><br><span class="line">double a &#x3D; 6378245, b &#x3D; 6356863.0188;</span><br><span class="line">double N, W, sb;</span><br><span class="line">double e2 &#x3D; 0.00673852540614652;</span><br><span class="line">double e1 &#x3D; 0.00669342161454287;</span><br><span class="line">double r &#x3D; Math.Sqrt(X * X + Y * Y);</span><br><span class="line">double alpha &#x3D; Math.Atan(Z * a &#x2F; (r * b));</span><br><span class="line">double cosal &#x3D; Math.Cos(alpha);</span><br><span class="line">double sinal &#x3D; Math.Sin(alpha);</span><br><span class="line">double L &#x3D; Math.Atan(Y &#x2F; X) + Math.PI;</span><br><span class="line">double B &#x3D; Math.Atan((Z + e2 * b * sinal * sinal * sinal) &#x2F; (r - e1 * a * cosal * cosal * cosal));</span><br><span class="line">sb &#x3D; Math.Sin(B);</span><br><span class="line">W &#x3D; Math.Sqrt(1 - e1 * sb * sb);</span><br><span class="line">N &#x3D; a &#x2F; W;</span><br><span class="line">double H &#x3D; r &#x2F; Math.Cos(B) - N;</span><br><span class="line">&#x2F;&#x2F;结果为BLH</span><br></pre></td></tr></table></figure>
+
+<p>​    3.EXCEL中：</p>
+<p>​    暂过~</p>
+<p>4）结果BLH为弧度》》转为度分秒</p>
+<p>​    参考EXCEL中公式：</p>
+<p>​    9*B*180/PI()/25+2*INT(B*180/PI())/5+INT(60*B*180/PI())/250</p>
+<p>​    PS：后面的计算，BLH依然用弧度制，这里只是提供一个方法</p>
+<p>5)使用高斯投影中央经线为114度</p>
+<p>​    参考公式：</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97x.png" alt="高斯正算x"></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97y.png" alt="高斯正算y"></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97%E5%8F%82%E6%95%B01.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97%E5%8F%82%E6%95%B02.png" alt="高斯正算参数2"></p>
+<p>​    C#代码实现</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;输入椭球参数及坐标点</span><br><span class="line">double a &#x3D; 6378245, f &#x3D; 0.00335232986925913;</span><br><span class="line">&#x2F;&#x2F;L0为中央子午线弧度制 这里为114度</span><br><span class="line">double B &#x3D; 0.398992580521256, L &#x3D; 1.98543736115197, L0 &#x3D; 1.9896753472735356;</span><br><span class="line">double x, y;</span><br><span class="line"></span><br><span class="line">double b, c, e1, e2; &#x2F;&#x2F;短半轴，极点处的子午线曲率半径，第一偏心率，第二偏心率</span><br><span class="line">double l, W, N, M, daihao;&#x2F;&#x2F;W为常用辅助函数，M为子午圈曲率半径，N为卯酉圈曲率半径</span><br><span class="line">double X;&#x2F;&#x2F;子午线弧长，高斯投影的坐标</span><br><span class="line">double ruo, ita, sb, cb, t;</span><br><span class="line">double[] m &#x3D; new double[5];</span><br><span class="line">double[] n &#x3D; new double[5];</span><br><span class="line">b &#x3D; a * (1 - f);</span><br><span class="line">e1 &#x3D; Math.Sqrt(a * a - b * b) &#x2F; a;</span><br><span class="line">e2 &#x3D; Math.Sqrt(a * a - b * b) &#x2F; b;</span><br><span class="line">c &#x3D; a * a &#x2F; b;</span><br><span class="line">m[0] &#x3D; a * (1 - e1 * e1);</span><br><span class="line">m[1] &#x3D; 3 * (e1 * e1 * m[0]) &#x2F; 2.0;</span><br><span class="line">m[2] &#x3D; 5 * (e1 * e1 * m[1]) &#x2F; 4.0;</span><br><span class="line">m[3] &#x3D; 7 * (e1 * e1 * m[2]) &#x2F; 6.0;</span><br><span class="line">m[4] &#x3D; 9 * (e1 * e1 * m[3]) &#x2F; 8.0;</span><br><span class="line">n[0] &#x3D; m[0] + m[1] &#x2F; 2 + 3 * m[2] &#x2F; 8 + 5 * m[3] &#x2F; 16 + 35 * m[4] &#x2F; 128;</span><br><span class="line">n[1] &#x3D; m[1] &#x2F; 2 + m[2] &#x2F; 2 + 15 * m[3] &#x2F; 32 + 7 * m[4] &#x2F; 16;</span><br><span class="line">n[2] &#x3D; m[2] &#x2F; 8 + 3 * m[3] &#x2F; 16 + 7 * m[4] &#x2F; 32;</span><br><span class="line">n[3] &#x3D; m[3] &#x2F; 32 + m[4] &#x2F; 16;</span><br><span class="line">n[4] &#x3D; m[4] &#x2F; 128;</span><br><span class="line">X &#x3D; n[0] * B - n[1] &#x2F; 2 * Math.Sin(B * 2) + n[2] &#x2F; 4 * Math.Sin(B * 4) - n[3] &#x2F; 6 * Math.Sin(B * 6) + n[4] &#x2F; 8 * Math.Sin(B * 8);</span><br><span class="line">&#x2F;&#x2F;X &#x3D; n[0] * B - Math.Sin(B) * Math.Cos(B) * ((n[1] - n[2] + n[3]) + (2 * n[2] - (16 * n[3] &#x2F; 3.0)) * Math.Sin(B) * Math.Sin(B) + 16 * n[3] * Math.Pow(Math.Sin(B), 4) &#x2F; 3.0);</span><br><span class="line">l &#x3D; L - L0;&#x2F;&#x2F;弧度 ruo无用</span><br><span class="line">ita &#x3D; e2 * Math.Cos(B);</span><br><span class="line">sb &#x3D; Math.Sin(B);</span><br><span class="line">cb &#x3D; Math.Cos(B);</span><br><span class="line">W &#x3D; Math.Sqrt(1 - e1 * e1 * sb * sb);</span><br><span class="line">N &#x3D; a &#x2F; W;</span><br><span class="line">t &#x3D; Math.Tan(B);</span><br><span class="line">ruo &#x3D; (180 &#x2F; Math.PI) * 3600;</span><br><span class="line">x &#x3D; (X + N * sb * cb * l * l &#x2F; 2 + N * sb * cb * cb * cb * (5 - t * t + 9 * ita * ita + 4 * ita * ita * ita * ita) * l * l * l * l &#x2F; 24 + N * sb * cb * cb * cb * cb * cb * (61 - 58 * t * t + t * t * t * t) * l * l * l * l * l * l &#x2F; 720);</span><br><span class="line">y &#x3D; (N * cb * l + N * cb * cb * cb * (1 - t * t + ita * ita) * l * l * l &#x2F; 6 + N * cb * cb * cb * cb * cb * (5 - 18 * t * t + t * t * t * t + 14 * ita * ita - 58 * ita * ita * t * t) * l * l * l * l * l &#x2F; 120);</span><br><span class="line">y &#x3D; y + 500000;</span><br></pre></td></tr></table></figure>
+
+<p>​    6)转为独立坐标系（平面四参数转换模型）</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XY2%E7%8B%AC%E7%AB%8B.png" alt="XY2独立"></p>
+<p>​    X0与Y0为坐标平移量，cos α，sin α 为坐标旋转因子，m为缩放因子。x1、y1为上一步的到的高斯投影面下的坐标；</p>
+<p>​    需要已有的地方坐标和高斯平面坐标采用坐标相似变换求其转换参数。</p>
+<p>​    具体看另一个仓库中的脚本工具，已经基于arcpy脚本实现 最新的深圳独立坐标与84坐标的互转。</p>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>坐标</category>
+      </categories>
+      <tags>
+        <tag>坐标</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL优化方法</title>
+    <url>/blog/2020/06/12/WebGL%E4%BC%98%E5%8C%96%E7%82%B9/</url>
+    <content><![CDATA[<blockquote>
+<ol>
+<li><p>找到性能瓶颈，尝试降低CPU或者GPU的时钟频率去测试哪个效率低</p>
+</li>
+<li><p>纹理受限，可以采取 减少canvas的长宽或者使用低分辨率的纹理测试；webgl 纹理绑定伸展和收缩效果时，gl.NEAREST 是最快的但会产生块状效果，gl.LINER因为是取平均值，会产生模糊</p>
+</li>
+<li><p>将Mip映射应用于纹理贴图</p>
+</li>
+<li><p>处理webgl丢失上下文的问题</p>
+</li>
+<li><p>不要经常切换program，在切换program和在着色器中使用if else语句都需要进行考量</p>
+</li>
+<li><p>避免在顶点数组数据中使用常量</p>
+</li>
+<li><p>在webgl中，使用drawElements()的gl.TRIANGLE_STRIP 结合退化三角形 比使用drawArrays()的gl.TRIANGLE方式节省内存,并且减少使用drawArrays和drawElements的次数</p>
+</li>
+<li><p>顶点组织顺序按照数组排序，不要使用乱序，因为难以命中缓存</p>
+</li>
+<li><p>减少使用drawArrays和drawElements的次数</p>
+</li>
+<li><p>避免绘制时从GPU读回数据或状态,例如，gl.getError() gl.readPixels(), 影响流水线的实现</p>
+</li>
+<li><p>用webgl inspector找出冗余的调用，因为webgl是的状态是跨帧持续的，减少使用改变webgl状态的方法。比如gl.enable(XXX)，只执行一次就行了</p>
+</li>
+<li><p>用细节层次简化模型（LOD技术）</p>
+</li>
+<li><p>避免在shader中做逻辑判断，比如if else。</p>
+<blockquote>
+<p>有的人可能会很疑惑，为何要这样？这和GPU的基本调度有关系，GPU的基本调度单位叫做wavefront, 就是指一组完全相同的计算指令，在GPU的几个计算单元中并行执行，每一个指令的输入数据不同而已。这样并行度很高，可以极大程度提高性能。但是一旦引入if else，就会把wavefront破坏掉，比如现在有10个计算单元在并发执行，但是碰到if，在5个计算单元中为true, 在5个计算单元中为false, 这样会造成新的计算指令，那么之前的并行运算将无法继续。新的计算指令需要排队等待执行，或者新的指令要转移到新的计算单元上，这个过程涉及到数据的复制转移，会比较耗时，会严重破坏并行度。</p>
+<p>但是有些场景下，shader中完全不用逻辑判断又不行，那该如何呢？可以考虑使用shader的内置函数，比如step函数，案例如下：</p>
+<p>float a;</p>
+<p>if(b &gt;1){</p>
+<p>a = 1;</p>
+<p>}else{</p>
+<p>a = 0.5;</p>
+<p>}</p>
+<p>可以优化为：</p>
+<p>float a;</p>
+<p>float temp = step(b, 1);</p>
+<p>a = temp * 0.5 + (1 - temp);</p>
+</blockquote>
+</li>
+<li><p>减少三角形数量</p>
+<blockquote>
+<p>较少三角形的数量大体上可以从以下几个角度入手：</p>
+<p>(1). 空间分割技术：包括八叉树，四叉树做空间分割，将不在当前可视区域物体剔除掉</p>
+<p>(2). 遮挡检测技术：视锥体范围内，有些物体会被前面的物体遮挡，这些被遮挡的物体其实是不需要渲染的。遮挡查询有多种技术方案实现，比如通过扩扑性，硬件遮挡查询。扩扑性比较麻烦，我这里推荐硬件遮挡查询技术，实现起来相对比较容易。</p>
+<p>(3). LOD技术：根据物体距离摄像头的距离，动态调节物体三角形的数量。</p>
+<p>(4). 图元类型的优化：使用GL_TRIANGLE_FAN或者GL_TRIANGLE_STRIP替代GL_TRIANGLES，因为这样可以重用顶点，减少三角形的数量。</p>
+<p>(5).使用顶点索引的方法做渲染：使用glDrawElements替代glDrawArrays，因为前者通过索引的方式可以减少三角形的数量。</p>
+</blockquote>
+</li>
+<li><p>纹理的优化</p>
+<blockquote>
+<p>(1). 纹理的长宽最好是2的幂。</p>
+<p>(2). 纹理压缩：纹理压缩在opengl es 3.0和webgl 2.0上有比较好的支持，经压缩后的纹理可以减少图形数据，节省宽带。常见的压缩格式为ETC，Khronos公司提供有ETC格式压缩的免费压缩包，在opengl/webgl程序中使用glCompressedTexImage2D函数加载被压缩的纹理。</p>
+<p>(3). 纹理的上传：传统的纹理上传比较耗时，可以考虑使用两个PBO上传纹理，性能会有较大的提升。</p>
+<p>(4). 纹理的合成：如果有很多个小的纹理，每一个纹理单独加载，效率比较低下。可以考虑将多个小纹理合成到一个纹理上，仅仅加载一次，然后在程序中使用的时候，使用不同的纹理坐标范围来加载不同的纹理。</p>
+</blockquote>
+</li>
+<li><p>减少系统内存向GPU内存传送数据的次数</p>
+<blockquote>
+<p>(1). 尽可能使用VBO/VAO</p>
+<p>(2). 在opengl es 3.0/webgl 2.0上可以使用Transform Feedback, 该方案可以使用GPU做通用运算，把计算的结果存入VBO中，在后期的渲染流程中使用该VBO作为输入。</p>
+<p>(3). 批次合并：比如一个最小包围体内有多个物体，可以将这些物体的三角形合并在一起，一次性的发送到GPU。</p>
+<p>(4). 使用instance: 如果要渲染多个重复的物体，可以使用instance特性。</p>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/WebGL%E4%BC%98%E5%8C%96%E7%82%B9.jpg" alt="WebGL优化点"></p>
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL光照</title>
+    <url>/blog/2020/06/12/WebGL%E5%85%89%E7%85%A7/</url>
+    <content><![CDATA[<p><strong>光源类型：</strong>平行光、点光光源、环境光。</p>
+<p><strong>反射类型：</strong>漫反射、环境反射。</p>
+<h4 id="颜色计算"><a href="#颜色计算" class="headerlink" title="颜色计算"></a>颜色计算</h4><p>漫反射光颜色 = 入射光颜色 * 表面基底色 * cos θ</p>
+<p>θ为入射角 =&gt;</p>
+<p>漫反射光颜色 = 入射光颜色 * 表面基底色 * (光线方向 · 法线方向)</p>
+<p>光线方向为入射方向反方向的单位向量，两单位向量点乘等于向量夹角的cos值。</p>
+<p>环境反射光颜色 = 入射光颜色 * 表面基底色</p>
+<p>表面的反射颜色 = 漫反射光颜色 + 环境反射光颜色</p>
+<h4 id="法向量计算"><a href="#法向量计算" class="headerlink" title="法向量计算"></a>法向量计算</h4><p><strong>正面</strong>观察表面，顶点顺序为<strong>顺时针</strong>。右手法则确定法向量。</p>
+<p>变换后的法向量 = 法向量x模型矩阵的<strong>逆转置矩阵</strong></p>
+<h4 id="逐片元计算"><a href="#逐片元计算" class="headerlink" title="逐片元计算"></a>逐片元计算</h4><p><strong>点光源</strong>下产生的效果，与通过顶点颜色内插出表面上每个片元的颜色的效果并不完全相同。某些情况下甚至很不一样。需要对表面上每个片元计算光照效果。</p>
+<ol>
+<li>片元在世界坐标系下的坐标</li>
+<li>片元处法向量。将顶点的世界坐标和法向量以<strong>varying</strong>变量的形式传给片元着色器，片元着色器中就已经是内插后的逐片元值了。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL加载纹理</title>
+    <url>/blog/2020/06/12/WebGL%E5%8A%A0%E8%BD%BD%E7%BA%B9%E7%90%86/</url>
+    <content><![CDATA[<h3 id="WebGL坐标系统和纹理坐标"><a href="#WebGL坐标系统和纹理坐标" class="headerlink" title="WebGL坐标系统和纹理坐标"></a>WebGL坐标系统和纹理坐标</h3><h5 id="1-WebGL坐标系统"><a href="#1-WebGL坐标系统" class="headerlink" title="1.WebGL坐标系统:"></a>1.WebGL坐标系统:</h5><p>先简单的认为是右手坐标系。</p>
+<ol>
+<li>x轴最左边为-1，最右边为1;</li>
+<li>y轴最下边为-1，最上边为1;</li>
+<li>z轴朝向你的方向最大值为1，远离你的方向最大值为-1;</li>
+</ol>
+<h5 id="2-纹理坐标"><a href="#2-纹理坐标" class="headerlink" title="2.纹理坐标"></a>2.纹理坐标</h5><p>WebGL使用s和t命名纹理坐标(st坐标系统)。（还有以uv命名）</p>
+<blockquote>
+<p>纹理图像四个角坐标为：左下(0.0,0.0),左上(0.0,1.0),右上(1.0,1.0),右下(1.0,0.0)。纹理坐标与图像自身尺寸无关，其右上角坐标始终是(1.0,1.0)。</p>
+</blockquote>
+<p>讲纹理坐标与顶点坐标相对应，来确定怎样将纹理图像显示到相应的几何顶点坐标之间。</p>
+<h5 id="3-取样器变量"><a href="#3-取样器变量" class="headerlink" title="3.取样器变量"></a>3.取样器变量</h5><p>基本取样器类型： <strong>sampler2D</strong> 与 <strong>sampleCube</strong>  只能是uniform变量。</p>
+<p>数量受着色器支持的纹理单元最大数量限制。</p>
+<h3 id="纹理使用"><a href="#纹理使用" class="headerlink" title="纹理使用"></a>纹理使用</h3><h4 id="1-着色器实现"><a href="#1-着色器实现" class="headerlink" title="1.着色器实现"></a>1.着色器实现</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> VSHADER_SOURCE =</span><br><span class="line">  <span class="string">'attribute vec4 a_Position;\n'</span> +</span><br><span class="line">  <span class="string">'attribute vec2 a_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'varying vec2 v_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'void main() &#123;\n'</span> +</span><br><span class="line">  <span class="string">'  gl_Position = a_Position;\n'</span> +</span><br><span class="line">  <span class="string">'  v_TexCoord = a_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'&#125;\n'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> FSHADER_SOURCE =</span><br><span class="line">  <span class="string">'precision mediump float;\n'</span> +</span><br><span class="line">  <span class="string">'uniform sampler2D u_Sampler;\n'</span> +</span><br><span class="line">  <span class="string">'varying vec2 v_TexCoord;\n'</span> +</span><br><span class="line">  <span class="string">'void main() &#123;\n'</span> +</span><br><span class="line">  <span class="string">'  gl_FragColor = texture2D(u_Sampler, v_TexCoord);\n'</span> +</span><br><span class="line">  <span class="string">'&#125;\n'</span>;</span><br><span class="line"><span class="keyword">let</span> a_Position = gl.getAttribLocation(gl.program, <span class="string">"a_Position"</span>);</span><br><span class="line"><span class="keyword">let</span> a_PointSize = gl.getAttribLocation(gl.program, <span class="string">"a_PointSize"</span>);</span><br><span class="line"><span class="keyword">let</span> a_TexCoord = gl.getAttribLocation(gl.program, <span class="string">"a_TexCoord"</span>);</span><br><span class="line"><span class="comment">//获取取样器变量u_Sampler</span></span><br><span class="line"><span class="keyword">let</span> u_Sampler = gl.getUniformLocation(gl.program, <span class="string">"u_Sampler"</span>);</span><br></pre></td></tr></table></figure>
+<p>顶点着色器中接受纹理坐标<code>a_TexCoord</code>，光栅化后传递给片元着色器。</p>
+<p>片元着色器中获取纹理像素（纹素）颜色。使用<code>GLSL ES</code>中:</p>
+<figure class="highlight plain"><figcaption><span>texture2D(sampler2D sampler, vec2 coord)```</span></figcaption><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">从sampler指定的纹理上获取coord指定的纹理坐标处的像素。</span><br><span class="line"></span><br><span class="line">**参数：**</span><br><span class="line"></span><br><span class="line">sampler</span><br><span class="line"></span><br><span class="line">&gt; 纹理单元编号(texture unit number)。专用于纹理的数据类型&#96;&#96;&#96;sampler2D&#96;&#96;&#96;：绑定到&#96;&#96;&#96;gl.TEXTURE_2D&#96;&#96;&#96;的纹理数据类型</span><br><span class="line"></span><br><span class="line">coord</span><br><span class="line"></span><br><span class="line">&gt; 纹理坐标。</span><br><span class="line"></span><br><span class="line">**返回值：**</span><br><span class="line"></span><br><span class="line">&gt; 纹理坐标处的像素颜色值。格式由&#96;&#96;&#96;gl.texImage2D()&#96;&#96;&#96;的internalformat参数决定。</span><br><span class="line"></span><br><span class="line">纹理放大缩小方法的参数决定WebGL系统将以何种方式内插处片元。将&#96;&#96;&#96;texture2D()&#96;&#96;&#96;函数返回值赋值给&#96;&#96;&#96;gl_FragColor&#96;&#96;&#96;,即片元着色器将当前片元染成这个颜色。最终画出纹理。</span><br><span class="line"></span><br><span class="line">#### 2.设置纹理坐标</span><br><span class="line"></span><br><span class="line">向顶点着色器传入顶点坐标，在光栅化后传递给片元着色器。</span><br><span class="line">&#96;&#96;&#96;javascript</span><br><span class="line">&#x2F;&#x2F;顶点坐标、顶点尺寸、纹理坐标</span><br><span class="line">let verticesSizeColorTexCoords &#x3D; new Float32Array([</span><br><span class="line">    -0.5, 0.5, 10.0, 0.0, 1.0,</span><br><span class="line">    -0.5, -0.5, 20.0, 0.0, 0.0,</span><br><span class="line">    0.5, 0.5, 30.0, 1.0, 1.0,</span><br><span class="line">    0.5, -0.5, 40.0, 1.0, 0.0</span><br><span class="line">])</span><br><span class="line">let vertexSizeColorTexCoordBuffer &#x3D; gl.createBuffer();</span><br><span class="line">gl.bindBuffer(gl.ARRAY_BUFFER,vertexSizeColorTexCoordBuffer);</span><br><span class="line">gl.bufferData(gl.ARRAY_BUFFER, verticesSizeColorTexCoords, gl.STATIC_DRAW);</span><br><span class="line">let FSIZE &#x3D; this.verticesSizeColorTexCoords.BYTES_PER_ELEMENT;</span><br><span class="line">gl.vertexAttribPointer(this.a_Position, 2, gl.FLOAT, false, FSIZE * 5, 0);</span><br><span class="line">gl.enableVertexAttribArray(this.a_Position);</span><br><span class="line">gl.vertexAttribPointer( this.a_PointSize, 1, gl.FLOAT, false, FSIZE * 5, FSIZE * 2 );</span><br><span class="line">gl.enableVertexAttribArray(this.a_PointSize);</span><br><span class="line">gl.vertexAttribPointer(this.a_TexCoord, 2, gl.FLOAT, false, FSIZE * 5, FSIZE * 3);</span><br><span class="line">gl.enableVertexAttribArray(this.a_TexCoord);</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-配置加载纹理"><a href="#3-配置加载纹理" class="headerlink" title="3.配置加载纹理"></a>3.配置加载纹理</h4><ol>
+<li>创建纹理对象。纹理对象用来管理WebGL系统中的纹理。</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Create a texture object</span></span><br><span class="line"><span class="keyword">let</span> texture = gl.createTexture();</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>加载纹理图像。使用Image对象<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Create the image object</span></span><br><span class="line"><span class="keyword">let</span> image = <span class="keyword">new</span> Image();</span><br><span class="line"><span class="comment">// Register the event handler to be called on loading an image</span></span><br><span class="line">image.onload = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    loadTexture(gl, texture, u_Sampler, image);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// Tell the browser to load an image</span></span><br><span class="line">image.src = <span class="built_in">require</span>(<span class="string">"@/assets/sky.jpg"</span>);</span><br></pre></td></tr></table></figure></li>
+<li>配置纹理。(<code>loadTexture()</code>)</li>
+</ol>
+<p><strong>图像Y轴反转</strong> WebGL中st坐标系统与PNG，BMP，JPG等图片格式坐标系统y轴相反。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/pixelStorei" target="_blank" rel="noopener">WebGLRenderingContext.pixelStorei()</a></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/WebGL_TexCoord.png" alt="WebGL_TexCoord"><br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/Image_Coord.png" alt="Image_Coord"></p>
+<p><strong>激活纹理单元(texture unit)</strong></p>
+<p>WebGL使用<strong>纹理单元</strong>来同时使用多个纹理。每个纹理单元有一个<strong>单元编号</strong>,内置变量<code>gl.TEXTURE0 gl.TEXTURE1 gl.TEXTURE2 ...</code>各表示一个纹理单元。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/activeTexture" target="_blank" rel="noopener">WebGLRenderingContext.activeTexture()</a></p>
+<p><strong>绑定纹理对象</strong></p>
+<p>同缓冲区很像，对缓冲区操作前，要先绑定缓冲区对象至一个target上。对纹理对象操作前需要绑定到纹理绑定点(目标)(gl.TEXTURE_2D)。没法直接操作纹理对象，必须通过将纹理对象绑定到纹理单元上，然后操作纹理单元操作纹理对象</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/bindTexture" target="_blank" rel="noopener">WebGLRenderingContext.bindTexture()</a></p>
+<p>该方法完成俩任务：开启纹理对象，以及将纹理对象绑定到纹理单元上</p>
+<p><strong>配置纹理对象参数</strong></p>
+<p>设置纹理图像映射到图形上的方式。1.如何根据纹理坐标获取纹素。2.按那种方式重复。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/texParameter" target="_blank" rel="noopener">WebGLRenderingContext.texParameter<a href="">fi</a></a></p>
+<p><strong>将图像分配给纹理对象</strong></p>
+<p>示例使用JPG格式纹理图片，该格式像素使用RGB三个分量表示。texImage2D方法将图像存储在WebGL的纹理对象中。通过internalformat参数告诉WebGL纹理图像格式类型。internalformat必须与format指定纹理图像数据格式一致。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/texImage2D" target="_blank" rel="noopener">WebGLRenderingContext.texImage2D()</a></p>
+<p><strong>将纹理单元传递给片元着色器</strong></p>
+<p>通过第二个参数指定纹理单元编号(<strong>gl.TEXTURE0中的0</strong>)将纹理对象传给u_Sampler。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/uniform" target="_blank" rel="noopener">WebGLRenderingContext.uniform[1234][fi][v]</a></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">loadTexture(gl, texture, u_Sampler, image) &#123;</span><br><span class="line">    <span class="comment">// Flip the image's y axis</span></span><br><span class="line">    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, <span class="number">1</span>); </span><br><span class="line">    <span class="comment">// Enable texture unit0</span></span><br><span class="line">    gl.activeTexture(gl.TEXTURE0);</span><br><span class="line">    <span class="comment">// Bind the texture object to the target</span></span><br><span class="line">    gl.bindTexture(gl.TEXTURE_2D, texture);</span><br><span class="line">    <span class="comment">// Set the texture parameters</span></span><br><span class="line">    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);</span><br><span class="line">    <span class="comment">// Set the texture image</span></span><br><span class="line">    gl.texImage2D(gl.TEXTURE_2D, <span class="number">0</span>, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);</span><br><span class="line">    <span class="comment">// Set the texture unit 0 to the sampler</span></span><br><span class="line">    gl.uniform1i(u_Sampler, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL可视范围</title>
+    <url>/blog/2020/06/12/WebGL%E5%8F%AF%E8%A7%86%E8%8C%83%E5%9B%B4/</url>
+    <content><![CDATA[<h3 id="视点、观察目标点、上方向"><a href="#视点、观察目标点、上方向" class="headerlink" title="视点、观察目标点、上方向"></a>视点、观察目标点、上方向</h3><p><strong>视点：</strong> 观察者所处位置。</p>
+<p><strong>观察目标点：</strong> 被观察的点,确定视线。</p>
+<p><strong>上方向：</strong> 最终绘制在屏幕上的影像中的向上的方向。</p>
+<h3 id="WebGL中观察者默认状态"><a href="#WebGL中观察者默认状态" class="headerlink" title="WebGL中观察者默认状态"></a>WebGL中观察者默认状态</h3><ul>
+<li>视点位于坐标系统(0,0,0)</li>
+<li>视线为Z负方向。观察点为(0,0,-1),上方向为Y轴负方向(0,1,0)</li>
+</ul>
+<h3 id="可视范围-正射类型"><a href="#可视范围-正射类型" class="headerlink" title="可视范围(正射类型)"></a>可视范围(正射类型)</h3><p>WebGL只有物体在可视范围内才会绘制。水平视角、垂直视角、可视深度定义了<strong>可视空间(view volume)</strong>。</p>
+<h4 id="可视空间"><a href="#可视空间" class="headerlink" title="可视空间"></a>可视空间</h4><ol>
+<li>长方体可视空间,盒装空间,正射投影(orthographic projection)产生。</li>
+<li>四棱锥/金字塔可视空间，由透视投影(perspective projection)产生。</li>
+</ol>
+<h5 id="盒状空间"><a href="#盒状空间" class="headerlink" title="盒状空间"></a>盒状空间</h5><p> 由<strong>近裁剪面</strong>和<strong>远裁剪面</strong>两个矩形表面确定。<br> <strong>正射投影矩阵(orthographic projection matrix)</strong><br> <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">Matrix4.prototype.setOrtho = <span class="function"><span class="keyword">function</span>(<span class="params">left, right, bottom, top, near, far</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> e, rw, rh, rd;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (left === right || bottom === top || near === far) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="string">'null frustum'</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  rw = <span class="number">1</span> / (right - left);</span><br><span class="line">  rh = <span class="number">1</span> / (top - bottom);</span><br><span class="line">  rd = <span class="number">1</span> / (far - near);</span><br><span class="line"></span><br><span class="line">  e = <span class="keyword">this</span>.elements;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">0</span>]  = <span class="number">2</span> * rw;</span><br><span class="line">  e[<span class="number">1</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">2</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">3</span>]  = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">4</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">5</span>]  = <span class="number">2</span> * rh;</span><br><span class="line">  e[<span class="number">6</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">7</span>]  = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">8</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">9</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">10</span>] = <span class="number">-2</span> * rd;</span><br><span class="line">  e[<span class="number">11</span>] = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">12</span>] = -(right + left) * rw;</span><br><span class="line">  e[<span class="number">13</span>] = -(top + bottom) * rh;</span><br><span class="line">  e[<span class="number">14</span>] = -(far + near) * rd;</span><br><span class="line">  e[<span class="number">15</span>] = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><br> <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9B%92%E8%A3%85%E7%A9%BA%E9%97%B4.png" alt="盒装空间"></p>
+<h5 id="可视空间-1"><a href="#可视空间-1" class="headerlink" title="可视空间"></a>可视空间</h5><p> <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E5%8F%AF%E8%A7%86%E7%A9%BA%E9%97%B4.png" alt="透视投影可视空间"><br> <strong>透视投影矩阵(perspective projection matrix)</strong>:</p>
+<ol>
+<li><p>根据顶点与视点的距离，按比例进行了缩小变换</p>
+</li>
+<li><p>进行了平移变换，贴近视线。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"> Matrix4.prototype.setPerspective = <span class="function"><span class="keyword">function</span>(<span class="params">fovy, aspect, near, far</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> e, rd, s, ct;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (near === far || aspect === <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="string">'null frustum'</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (near &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="string">'near &lt;= 0'</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (far &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="string">'far &lt;= 0'</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  fovy = <span class="built_in">Math</span>.PI * fovy / <span class="number">180</span> / <span class="number">2</span>;</span><br><span class="line">  s = <span class="built_in">Math</span>.sin(fovy);</span><br><span class="line">  <span class="keyword">if</span> (s === <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="string">'null frustum'</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  rd = <span class="number">1</span> / (far - near);</span><br><span class="line">  ct = <span class="built_in">Math</span>.cos(fovy) / s;</span><br><span class="line"></span><br><span class="line">  e = <span class="keyword">this</span>.elements;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">0</span>]  = ct / aspect;</span><br><span class="line">  e[<span class="number">1</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">2</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">3</span>]  = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">4</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">5</span>]  = ct;</span><br><span class="line">  e[<span class="number">6</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">7</span>]  = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">8</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">9</span>]  = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">10</span>] = -(far + near) * rd;</span><br><span class="line">  e[<span class="number">11</span>] = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">  e[<span class="number">12</span>] = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">13</span>] = <span class="number">0</span>;</span><br><span class="line">  e[<span class="number">14</span>] = <span class="number">-2</span> * near * far * rd;</span><br><span class="line">  e[<span class="number">15</span>] = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="模型视图投影矩阵-model-view-projection-matrix"><a href="#模型视图投影矩阵-model-view-projection-matrix" class="headerlink" title="模型视图投影矩阵(model view projection matrix)"></a>模型视图投影矩阵(model view projection matrix)</h3></li>
+</ol>
+<p><em>顶点在规范立方体中的坐标 = &lt;投影矩阵&gt;x&lt;视图矩阵&gt;x&lt;模型矩阵&gt;x&lt;顶点坐标&gt;</em><br>*&lt;投影矩阵&gt;x&lt;视图矩阵&gt;x&lt;模型矩阵&gt;* 这个式子和顶点没关系，可以再js中计算出结果，即<strong>模型视图投影矩阵</strong>传入给顶点着色器。</p>
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>层次模型</title>
+    <url>/blog/2020/06/12/WebGL%E5%B1%82%E6%AC%A1%E6%A8%A1%E5%9E%8B/</url>
+    <content><![CDATA[<h3 id="处理复杂的三维模型"><a href="#处理复杂的三维模型" class="headerlink" title="处理复杂的三维模型"></a>处理复杂的三维模型</h3><p>多个简单模型组成的复杂模型，其之间存在连接关系，例如“A部件带动B部件运动”。</p>
+<p>三维模型之间并没有真正连接在一起。<strong>上层的变化时需要施加其下层模型同样的模型矩阵</strong>，这样，上层模型就能跟随下层模型变换。</p>
+<h3 id="通过索引绘制物体"><a href="#通过索引绘制物体" class="headerlink" title="通过索引绘制物体"></a>通过索引绘制物体</h3><p>将三角形顶点索引写入缓冲区，并绑定到<code>gl.ELEMENT_ARRAY_BUFFER</code></p>
+<p>使用<code>gl.drawElements()</code>进行绘制。其对每个索引值，从绑定到<code>gl.ARRAY_BUFFER</code>的缓冲区中获取顶点信息，并传递给attribute变量，执行一次顶点着色器。</p>
+<ol>
+<li><p>可以重复利用顶点信息，控制内存开销。</p>
+</li>
+<li><p>索引值无法将颜色区分开，颜色依赖于顶点，所以如果单个点在不同表面上时，需要创建多个具有相同坐标不同颜色的顶点。</p>
+</li>
+</ol>
+<h3 id="着色器与着色器程序对象"><a href="#着色器与着色器程序对象" class="headerlink" title="着色器与着色器程序对象"></a>着色器与着色器程序对象</h3><p><strong>着色器对象：</strong>管理一个顶点着色器或者一个片元着色器。每个着色器都是一个着色器对象。</p>
+<p><strong>程序对象：</strong>管理着色器对象的容器。一个程序对象必须包含一个顶点着色器与一个片元着色器。</p>
+<h4 id="创建和初始化着色器"><a href="#创建和初始化着色器" class="headerlink" title="创建和初始化着色器"></a>创建和初始化着色器</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">gl.createShader(type) <span class="comment">//1.创建着色器对象</span></span><br><span class="line">gl.shaderSource(shader, source) <span class="comment">//2.向着色器对象中填充着色器程序源代码</span></span><br><span class="line">gl.compileShader(shader) <span class="comment">//3.编译着色器</span></span><br><span class="line">---------</span><br><span class="line">gl.createProgram() <span class="comment">//4.创建程序对象</span></span><br><span class="line">gl.attachShader(program, shader) <span class="comment">//5.为程序对象分配着色器</span></span><br><span class="line">gl.linkProgram(program) <span class="comment">//6.连接程序对象</span></span><br><span class="line">gl.useProgram(program) <span class="comment">//7.使用程序对象</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL着色器与变量</title>
+    <url>/blog/2020/06/12/WebGL%E7%9D%80%E8%89%B2%E5%99%A8%E4%B8%8E%E5%8F%98%E9%87%8F/</url>
+    <content><![CDATA[<h3 id="着色器-shader"><a href="#着色器-shader" class="headerlink" title="着色器(shader)"></a>着色器(shader)</h3><h3 id="1-顶点着色器-Vertex-shader"><a href="#1-顶点着色器-Vertex-shader" class="headerlink" title="1.顶点着色器(Vertex shader)"></a>1.顶点着色器(Vertex shader)</h3><blockquote>
+<p>用于描述顶点特性（如颜色、位置等）。顶点指的是二维或者三维空间中的的一个点。</p>
+</blockquote>
+<blockquote>
+<p><strong>内置变量:</strong></p>
+<p>vec4 gl_Position 表示顶点位置</p>
+<p>float gl_PointSize 表示点的尺寸(像素数)</p>
+</blockquote>
+<h3 id="2-片元着色器-Fragment-shader"><a href="#2-片元着色器-Fragment-shader" class="headerlink" title="2.片元着色器(Fragment shader)"></a>2.片元着色器(Fragment shader)</h3><blockquote>
+<p>进行逐片元的处理过程如光照。片元，可以将其理解为像素。</p>
+</blockquote>
+<blockquote>
+<p><strong>内置变量:</strong></p>
+<p>vec4 gl_FragColor 指定片元颜色(RGBA格式)</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/shader.png" alt="绘制过程"></p>
+<h3 id="3-使用着色器的WebGL程序"><a href="#3-使用着色器的WebGL程序" class="headerlink" title="3.使用着色器的WebGL程序"></a>3.使用着色器的WebGL程序</h3><p>将位置信息从JavaScript程序中传给顶点着色器。可以通过<strong>attribute变量</strong>和<strong>uniform变量</strong>。</p>
+<p><strong>attribute变量：</strong> 传输与顶点相关数据。给顶点着色器使用。只能是vec2,vec3,vec4,float,mat2,mat3,mat4类型。最少支持8个。必须全局。</p>
+<p><strong>uniform变量：</strong> 对于顶点相同的数据（与顶点无关）。给片元着色器使用。顶点着色器中最少支持128个，片元着色器中最少支持16个。必须全局。</p>
+<p><strong>声明（例）：</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">attribute vec4 a_Position;</span><br><span class="line">uniform vec4 u_FragColor;</span><br></pre></td></tr></table></figure>
+
+<p><strong>获取attribute，uniform变量：</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a_Position = gl.getAttribLocation(gl.program,<span class="string">"a_Position"</span>);</span><br><span class="line"><span class="comment">//返回attribute变量位置,否则-1(具有webgl_或者gl_前缀或变量不存在)</span></span><br><span class="line"><span class="keyword">let</span> u_FragColor = gl.getUniformLocation(gl.program,<span class="string">"u_FragColor"</span>);</span><br><span class="line"><span class="comment">//返回uniform变量位置,否则null</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>attribute，uniform变量赋值:</strong></p>
+<p>其中第2,3分量默认为0.0，第四分量默认1.0。</p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/vertexAttrib" target="_blank" rel="noopener">WebGLRenderingContext.vertexAttrib[1234]f<a href="">v</a></a></p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/uniform" target="_blank" rel="noopener">WebGLRenderingContext.uniform[1234][fi]<a href="">v</a></a></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">gl.vertexAttrib1f(a_Position,v1);</span><br><span class="line">gl.vertexAttrib2f(a_Position,v1,v2);</span><br><span class="line">gl.vertexAttrib3f(a_Position,v1,v2,v3);</span><br><span class="line">gl.vertexAttrib4f(a_Position,v1,v2,v3,v4);</span><br><span class="line"><span class="comment">//或者用以v结尾函数版本</span></span><br><span class="line"><span class="keyword">let</span> position = <span class="keyword">new</span> Float32Atrray([<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>, <span class="number">1.0</span>]);</span><br><span class="line">gl.vertexAttrib4fv(a_Position,position)</span><br><span class="line"></span><br><span class="line">gl.uniform1f(u_FragColor,v1);</span><br><span class="line">gl.uniform2f(u_FragColor,v1,v2);</span><br><span class="line">gl.uniform3f(u_FragColor,v1,v2,v3);</span><br><span class="line">gl.uniform4f(u_FragColor,v1,v2,v3,v4);</span><br><span class="line"><span class="comment">//或者用以v结尾函数版本</span></span><br><span class="line"><span class="keyword">let</span> color = <span class="keyword">new</span> Float32Atrray([<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>, <span class="number">1.0</span>]);</span><br><span class="line">gl.uniform4fv(u_FragColor,color)</span><br></pre></td></tr></table></figure>
+
+<p><strong>WebGL函数命名规范:</strong>&lt;基础函数名&gt;&lt;参数个数&gt;&lt;参数类型&gt;</p>
+<p><strong>着色器初始化:</strong></p>
+<p>着色器程序由<strong>OpenGL ES着色器语言(GLSL ES)</strong> 编写。在JavaScript以字符串形式编写，传给WebGL系统。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> VSHADER_SOURCE =</span><br><span class="line">    <span class="string">"attribute vec4 a_Position;\n"</span> +</span><br><span class="line">    <span class="string">"void main() &#123;\n"</span> +</span><br><span class="line">    <span class="string">"  gl_Position = a_Position;\n"</span> +</span><br><span class="line">    <span class="string">"  gl_PointSize = 10.0;\n"</span> +</span><br><span class="line">    <span class="string">"&#125;\n"</span>,</span><br><span class="line"><span class="keyword">let</span> FSHADER_SOURCE =</span><br><span class="line">    <span class="string">"precision mediump float;\n"</span> +</span><br><span class="line">    <span class="string">"uniform vec4 u_FragColor;\n"</span> +</span><br><span class="line">    <span class="string">"void main() &#123;\n"</span> +</span><br><span class="line">    <span class="string">"  gl_FragColor = u_FragColor;\n"</span> +</span><br><span class="line">    <span class="string">"&#125;\n"</span>,</span><br><span class="line"></span><br><span class="line"><span class="comment">// Create shader object</span></span><br><span class="line"><span class="keyword">let</span> vertexShader = gl.createShader(gl.VERTEX_SHADER);</span><br><span class="line">gl.shaderSource(vertexShader, VSHADER_SOURCE);</span><br><span class="line">gl.compileShader(vertexShader);</span><br><span class="line"><span class="keyword">let</span> fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);</span><br><span class="line">gl.shaderSource(fragmentShader, FSHADER_SOURCE);</span><br><span class="line">gl.compileShader(fragmentShader);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Create a program object</span></span><br><span class="line"><span class="keyword">let</span> program = gl.createProgram();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Attach the shader objects</span></span><br><span class="line">gl.attachShader(program, vertexShader);</span><br><span class="line">gl.attachShader(program, fragmentShader);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Link the program object</span></span><br><span class="line">gl.linkProgram(program);</span><br><span class="line">gl.useProgram(program);</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL缓冲区</title>
+    <url>/blog/2020/06/12/WebGL%E7%BC%93%E5%86%B2%E5%8C%BA/</url>
+    <content><![CDATA[<h3 id="缓冲区对象"><a href="#缓冲区对象" class="headerlink" title="缓冲区对象"></a>缓冲区对象</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">gl.vertexAttrib4fv(a_Position,position)</span><br><span class="line">gl.uniform4fv(u_FragColor,color)</span><br></pre></td></tr></table></figure>
+
+<p>我们使用上面的方法每次只能传入并绘制一个点，而对于多个顶点组成的对象需要一次性传入多个顶点到着色器中。<br><strong>缓冲区对象</strong>可以一次性传入多个顶点数据。其实WebGL系统中的一块内存区域，可以一次性向缓冲区对象中填充大量数据，供着色器使用。</p>
+<h3 id="使用缓冲区对象"><a href="#使用缓冲区对象" class="headerlink" title="使用缓冲区对象"></a>使用缓冲区对象</h3><p>传入顶点数据</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//JS中的Array未对同类型大量元素数组做优化，所以使用类型化数组Float32Array</span></span><br><span class="line"><span class="keyword">let</span> vertices = <span class="keyword">new</span> <span class="built_in">Float32Array</span>([<span class="number">0.0</span>, <span class="number">0.5</span>, <span class="number">-0.5</span>, <span class="number">-0.5</span>, <span class="number">0.5</span>, <span class="number">-0.5</span>])</span><br><span class="line"><span class="keyword">let</span> vertexBuffer = gl.createBuffer();</span><br><span class="line"><span class="comment">// Bind the buffer object to target</span></span><br><span class="line"><span class="comment">// target参数表示缓冲区对象的用途</span></span><br><span class="line"><span class="comment">// 参数gl.ARRAY_BUFFER表示缓冲区中包含了顶点数据。</span></span><br><span class="line">gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);</span><br><span class="line"><span class="comment">// Write date into the buffer object</span></span><br><span class="line"><span class="comment">// 不能直接向缓冲区对象写入数据，只能向target上的缓冲区对象写入数据，所以必须先进行绑定。</span></span><br><span class="line">gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);</span><br><span class="line"><span class="comment">// Assign the buffer object to a_Position variable</span></span><br><span class="line"><span class="comment">//gl.vertexAttribPointer(location, size, type, normalize, stride, offset)</span></span><br><span class="line"><span class="comment">//size指缓冲区中每个顶点的分量长度。如为2则默认每个顶点第三分量为0，第四分量为1。</span></span><br><span class="line">gl.vertexAttribPointer(a_Position, <span class="number">2</span>, gl.FLOAT, <span class="literal">false</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"><span class="comment">// Enable the assignment to a_Position variable</span></span><br><span class="line">gl.enableVertexAttribArray(a_Position);</span><br><span class="line"><span class="comment">//关闭分配了缓冲区的attribute变量</span></span><br><span class="line"><span class="comment">// gl.disableVertexAttribArray(a_Position);</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="绘制"><a href="#绘制" class="headerlink" title="绘制"></a>绘制</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//gl.drawArrays(mode, first, count)</span></span><br><span class="line"><span class="comment">//mode指基本图形类型如POINTS、TRIANGLES、LINE_LOOP等</span></span><br><span class="line"><span class="comment">//first为0时，指从缓冲区中第1个坐标开始画起</span></span><br><span class="line"><span class="comment">//count代表画多少次，实际上着色器执行了count次</span></span><br><span class="line">gl.drawArrays(gl.POINTS, <span class="number">0</span>, <span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL高级技术</title>
+    <url>/blog/2020/06/12/WebGL%E9%AB%98%E7%BA%A7%E6%8A%80%E6%9C%AF/</url>
+    <content><![CDATA[<h3 id="物体旋转"><a href="#物体旋转" class="headerlink" title="物体旋转"></a>物体旋转</h3><p>使用模型视图投影矩阵变化顶点坐标。</p>
+<p>根据鼠标位移差值，计算旋转矩阵。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">viewProjMatrix.setPerspective()</span><br><span class="line">viewProjMatrix.lookAt()</span><br><span class="line">------</span><br><span class="line">g_MvpMatrix.set(viewProjMatrix)</span><br><span class="line">g_MvpMatrix.roate()</span><br></pre></td></tr></table></figure>
+
+<h3 id="选中物体"><a href="#选中物体" class="headerlink" title="选中物体"></a>选中物体</h3><h5 id="使用颜色缓冲区方法（简单）"><a href="#使用颜色缓冲区方法（简单）" class="headerlink" title="使用颜色缓冲区方法（简单）"></a>使用颜色缓冲区方法（简单）</h5><ol>
+<li><p>当点击时，整个对象重绘成单一红色。</p>
+</li>
+<li><p>读取鼠标点击处的颜色。</p>
+</li>
+<li><p>使用立方体原来的颜色重绘。</p>
+</li>
+<li><p>对比第二步读取到的颜色。 </p>
+</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">gl.readPixels(x, y, width, height, format, type, pixels)</span><br><span class="line"><span class="comment">//读取颜色缓冲区中x,y,width,height参数确定的像素值，保存在pixels中</span></span><br></pre></td></tr></table></figure>
+
+<p>例如对于立方体的多个表面，将<strong>表面编号</strong>写入组成每个表面各个顶点，将编号数组传入顶点着色器。当点击时，首先在顶点着色器中将每个面根据<strong>编号</strong>计算每个面的颜色<strong>α值</strong>，并在<strong>颜色缓冲区</strong>中重绘。即可通过<code>readPixels</code>获取颜色值，得到点击的表面编号。之后根据表面编号，再传入顶点着色器对相应面进行所需操作。</p>
+<h3 id="HUD-平视显示器"><a href="#HUD-平视显示器" class="headerlink" title="HUD(平视显示器)"></a>HUD(平视显示器)</h3><p>再三维场景上叠加文本或者二维图形信息。</p>
+<p>使用两个canvas叠加。背景透明。</p>
+<h3 id="雾化"><a href="#雾化" class="headerlink" title="雾化"></a>雾化</h3><p><strong>线性雾化：</strong>雾化程度取决于与视点之间的距离。某一点的雾化程度可以定义成雾化因子。</p>
+<p>片元颜色 = 物体表面颜色 x 雾化因子 + 雾的颜色 x （1 - 雾化因子）</p>
+<h5 id="w分量"><a href="#w分量" class="headerlink" title="w分量"></a>w分量</h5><p>gl_Position的w分量为顶点的<strong>视图坐标</strong>的z分量乘以-1。在视图坐标系中，视点在原点，视线沿着Z轴负方向，观察者看到的物体其视图坐标系值z分量都为负数，所以其w值可以直接近似为顶点与视点的距离。</p>
+<h3 id="绘制圆形点"><a href="#绘制圆形点" class="headerlink" title="绘制圆形点"></a>绘制圆形点</h3><p>将方形的点剔除不需要的片元。</p>
+<p>片元着色器中内置变量</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">vec4 gl_FragCoord  <span class="comment">//片元窗口坐标</span></span><br><span class="line">vec4 gl_PointCoord  <span class="comment">//片元在被绘制的点内的坐标（0.0到1.0）</span></span><br></pre></td></tr></table></figure>
+
+<p>在片元着色器中，将距离点的中心(0.5,0.5)超过0.5的片元剔除。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">distance(gl_PointCoord, vec2(<span class="number">0.5</span>, <span class="number">0.5</span>)) <span class="comment">//计算距离函数</span></span><br><span class="line">discard <span class="comment">//放弃当前片元语句</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="α混合"><a href="#α混合" class="headerlink" title="α混合"></a>α混合</h3><p>实现半透明效果，需要用到颜色的α分量。需要开启WebGL的<strong>α混合</strong>功能。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">gl.enable(gl.BLEND) <span class="comment">//开启混合功能</span></span><br><span class="line">gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHAD) </span><br><span class="line"><span class="comment">//指定混合函数  参数指定进行混合操作的函数。</span></span><br><span class="line"><span class="comment">//加法混合---gl.blendFunc(gl.SRC_ALPHA, gl.ONE)</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="混合函数"><a href="#混合函数" class="headerlink" title="混合函数"></a>混合函数</h5><p>混合后的颜色  = 源颜色 * src_factor + 目标颜色 * dst_factor</p>
+<p><strong>源颜色：</strong> 待混合进去的颜色。上层颜色</p>
+<p><strong>目标颜色：</strong> 待被混合的颜色。下层颜色</p>
+<h5 id="透明与不透明共存"><a href="#透明与不透明共存" class="headerlink" title="透明与不透明共存"></a>透明与不透明共存</h5><p>透明后如果开启了<strong>隐藏面消除</strong>功能，则被隐藏的片元则不会绘制。所以不会发生混合过程。但是关闭<strong>隐藏面消除</strong>功能会使物体前后关系乱套。所以要实现透明与不透明共存：</p>
+<ol>
+<li>开启<strong>隐藏面消除</strong>功能  <code>gl.enable(gl.DEPTH_TEST)</code></li>
+<li>绘制所有不透明物体</li>
+<li>锁定用于隐藏面消除的<strong>深度缓冲区</strong>的写入操作，使其<strong>只读</strong>。<strong>深度缓冲区：</strong> 是一个中间对象，帮助进行隐藏面消除，存储深度信息:每个像素的归一化坐标z值。其对比z值，舍弃隐藏的片元，不会写入颜色缓冲区。<code>gl.depthMask(false)</code></li>
+<li>绘制所有半透明物体，需要按照深度排序，从后往前绘制。</li>
+<li>释放深度缓冲区，可读可写。<code>gl.depthMask(true)</code></li>
+</ol>
+<h3 id="切换着色器"><a href="#切换着色器" class="headerlink" title="切换着色器"></a>切换着色器</h3><p>当对于不同物体需要不同着色器进行绘制时，需要切换使用。</p>
+<p>为多个着色器对象创建多个程序对象，使用<code>gl.useProgram(program)</code>进行切换。</p>
+<h3 id="渲染到纹理"><a href="#渲染到纹理" class="headerlink" title="渲染到纹理"></a>渲染到纹理</h3><h3 id="加载三维模型"><a href="#加载三维模型" class="headerlink" title="加载三维模型"></a>加载三维模型</h3><h5 id="OBJ文件格式"><a href="#OBJ文件格式" class="headerlink" title="OBJ文件格式"></a>OBJ文件格式</h5><blockquote>
+<ol>
+<li><p>(#)开头行为注释</p>
+</li>
+<li><p>材质文件存储在外部MTL格式文件。<code>mtllib&lt;外部材质文件名&gt;</code></p>
+</li>
+<li><p>模型名称 <code>&lt;模型名称&gt;</code></p>
+</li>
+<li><p>顶点坐标 <code>v x y z [w]</code></p>
+</li>
+<li><p>指定某个材质 。列举使用这个材质的表面。材质被定义在引用的MTL文件中。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">usemtl&lt;材质名&gt;</span><br><span class="line">f v1 v2 v3 v4 ···</span><br><span class="line"></span><br><span class="line">f v1<span class="comment">//vn1 v2//vn2 v3//vn3 ···</span></span><br></pre></td></tr></table></figure>
+
+<p>其中v1为顶点索引值，从1开始。</p>
+<p>vn1,vn2为法线向量索引，从1开始。</p>
+</li>
+</ol>
+</blockquote>
+<h5 id="MTL文件格式"><a href="#MTL文件格式" class="headerlink" title="MTL文件格式"></a>MTL文件格式</h5><blockquote>
+<ol>
+<li><p>定义一个新材质<code>newmtl&lt;材质名&gt;</code></p>
+</li>
+<li><p>使用Ka、Kd和Ks定义表面环境色、漫反射、高光色。使用RGB格式，区间为[0.0，1.0]</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">Ka <span class="number">0.000000</span> <span class="number">0.000000</span> <span class="number">0.000000</span></span><br><span class="line">Kd <span class="number">0.000000</span> <span class="number">0.000000</span> <span class="number">0.000000</span></span><br><span class="line">Ks <span class="number">0.000000</span> <span class="number">0.000000</span> <span class="number">0.000000</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Ns指定高光色权重，Ni指定表面光学密度，d指定透明度，illum指定光照模型。</p>
+</li>
+</ol>
+</blockquote>
+<h3 id="响应上下文丢失"><a href="#响应上下文丢失" class="headerlink" title="响应上下文丢失"></a>响应上下文丢失</h3><p>当其他程序接管了图形硬件，或者操作系统休眠，浏览器会失去这些资源，webgl绘图上下文就会丢失。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">webglcontextlost事件 当WebGL上下文丢失时触发</span><br><span class="line">webglcontextrestored事件  当浏览器完成WebGL系统重置后触发</span><br></pre></td></tr></table></figure>
+
+<p>当丢失上下文时，<code>getWebGLContext()</code>函数获得渲染上下文对象<code>gl</code>就失效了。在浏览器重置WebGL后需要重新完成在之前<code>gl</code>对象上的所有操作。如创建缓冲区，纹理对象，初始化着色器等。</p>
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>关于ArcPy的坑(一)</title>
+    <url>/blog/2020/06/12/%E5%85%B3%E4%BA%8EArcPy%E7%9A%84%E5%9D%91-%E4%B8%80/</url>
+    <content><![CDATA[<h4 id="在直接使用Excel文件时，本地可以调用成功能，发布后无法找到对应路径文件。"><a href="#在直接使用Excel文件时，本地可以调用成功能，发布后无法找到对应路径文件。" class="headerlink" title="在直接使用Excel文件时，本地可以调用成功能，发布后无法找到对应路径文件。"></a>在直接使用Excel文件时，本地可以调用成功能，发布后无法找到对应路径文件。</h4><ul>
+<li><p>解决办法：</p>
+<p>使用Excel 转表，将磁盘中的表格输出到gdb中，从File类型转为Table类型。</p>
+</li>
+</ul>
+<blockquote>
+<h1 id="Excel-转表"><a href="#Excel-转表" class="headerlink" title="Excel 转表"></a>Excel 转表</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>将 Microsoft Excel 文件转换为表。</p>
+<h2 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h2><ul>
+<li>Excel 转表支持 Excel 工作簿 (.xlsx) 和 Microsoft Excel 5.0/95 工作簿 (.xls) 格式作为输入。</li>
+<li>此工具假设表数据按纵向排序。第一行用作输出表的字段名称。在验证过程中，可能会对这些字段名称重命名，以免出现任何错误或重复名称。数据间的空列将得到保留，并为其指定通用字段名（例如 field_4）。</li>
+<li>输出字段数据类型基于输入列范围内找到的值和像元格式。输出字段数据类型包括浮点型、文本和日期。如果输入列包含多个数据类型或格式类型，则输出字段的类型为文本。</li>
+</ul>
+<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ExcelToTable_conversion (Input_Excel_File, Output_Table, &#123;Sheet&#125;)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>数据类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Input_Excel_File</td>
+<td>要转换的 Microsoft Excel 文件。</td>
+<td>File</td>
+</tr>
+<tr>
+<td>Output_Table</td>
+<td>输出表。</td>
+<td>Table</td>
+</tr>
+<tr>
+<td>Sheet(可选)</td>
+<td>要导入的 Excel 文件中特定工作表的名称。如果未指定，则使用工作簿中的第一个工作表。</td>
+<td>String</td>
+</tr>
+</tbody></table>
+</blockquote>
+<h2 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">input_table = outTempTable + <span class="string">"/connect$"</span></span><br><span class="line">arcpy.ExcelToTable_conversion(Input_Excel_File = outTempTable, Output_Table = <span class="string">"connect"</span>, Sheet = <span class="string">"connect"</span>)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>ESRI</category>
+      </categories>
+      <tags>
+        <tag>ArcPy</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>关于ArcPy的坑(二)</title>
+    <url>/blog/2020/06/12/%E5%85%B3%E4%BA%8EArcPy%E7%9A%84%E5%9D%91-%E4%BA%8C/</url>
+    <content><![CDATA[<h3 id="一、X-Y生成的事件图层没有OID字段，某些工具无法直接使用，需要转成要素类。"><a href="#一、X-Y生成的事件图层没有OID字段，某些工具无法直接使用，需要转成要素类。" class="headerlink" title="一、X,Y生成的事件图层没有OID字段，某些工具无法直接使用，需要转成要素类。"></a>一、X,Y生成的事件图层没有OID字段，某些工具无法直接使用，需要转成要素类。</h3><h3 id="二、-需要给某个要素类属性表添加连接表"><a href="#二、-需要给某个要素类属性表添加连接表" class="headerlink" title="二、 需要给某个要素类属性表添加连接表"></a>二、 需要给某个要素类属性表添加连接表</h3><ol>
+<li><p>输入必须为图层：Mosaic Layer; Raster Layer; Table View，所以需要将要素先转为图层使用方法:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">arcpy.MakeFeatureLayer_management(<span class="string">"in_memory"</span> + <span class="string">"\\"</span> + <span class="string">"featureclass"</span> , <span class="string">"layer"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输入图层或表视图必须有 ObjectID 字段连接表不必包含 ObjectID 字段。</p>
+</li>
+<li><p>连接仅在会话期间有效。要保存表中属性至要素中的话，使用工具将图层保存为要素类。此方法仅适用于图层，表视图不能使用此方式进行保存。使用方法如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">arcpy.FeatureClassToFeatureClass_conversion(<span class="string">"layer"</span>, out_path = outputFile, out_name = FeatureName)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>注意，如果不是保存为要素类，而是保存为图层文件，保存后可以看到要素数据集中的本属于连接表的字段名在要素属性表中会默认加上sheet名的前缀。<br>这里我们保存为要素类，要….</p>
+<p>(防止后面使用该字段时出现错误，得看清楚字段名情况)</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">arcpy.env.qualifiedFieldNames = <span class="string">"UNQUALIFIED"</span></span><br></pre></td></tr></table></figure>
+
+<p>下面是官方一些解释</p>
+</li>
+</ol>
+<blockquote>
+<h1 id="限定的字段名（环境设置）"><a href="#限定的字段名（环境设置）" class="headerlink" title="限定的字段名（环境设置）"></a>限定的字段名（环境设置）</h1><p>遵循“限定的字段名”环境的工具将使用此设置来区分限定的字段名和未限定的字段名。限定的字段名是要素类或表中的这样一些字段名称，在它们的字段名称后会附加原始要素类或表的名称。使用连接数据时，会涉及此设置。</p>
+<h2 id="用法说明"><a href="#用法说明" class="headerlink" title="用法说明"></a>用法说明</h2><ul>
+<li>默认限定的输出表字段命名结构为“表名.字段名”。当未限定时，输出表或要素类中的字段将始终用格式字段名命名。</li>
+<li>在限定的字段名可能超出允许的字段名宽度时，应将环境设为 UNQUALIFIED - 例如，连接 shapefile 时。Shapefile 字段将截短为八个字符。</li>
+</ul>
+<p>当工具参数中包含字段映射时（“转换”工具箱的许多工具中都包括），字段名自动设置为 UNQUALIFIED，因此无需设置该环境。脚本语法</p>
+<p>arcpy.env.qualifiedFieldNames = qualified_field_names</p>
+<table>
+<thead>
+<tr>
+<th>qualified_field_names</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>True</td>
+<td>输出字段名包括表名。这也可以使用 QUALIFIED 关键字设置。这是默认设置。</td>
+</tr>
+<tr>
+<td>False</td>
+<td>输出字段名将不包括表名。这也可以使用 UNQUALIFIED 关键字设置。</td>
+</tr>
+</tbody></table>
+</blockquote>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>ESRI</category>
+      </categories>
+      <tags>
+        <tag>ArcPy</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>关于前端单元测试</title>
+    <url>/blog/2020/06/12/%E5%85%B3%E4%BA%8E%E5%89%8D%E7%AB%AF%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E5%89%8D%E7%AB%AF%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.png" alt="前端单元测试"></p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p><strong>相关工具：</strong></p>
+<p>karma—打开浏览器</p>
+<p>Mocha—describe,it</p>
+<p>chai—expect</p>
+<p>sinon—fake</p>
+<p>sinon-chai—calledWith</p>
+<p>ps:如果测css  需要挂载到页面中否则没有css(创建div 将组件mount)</p>
+<h4 id="1-测试组件存在"><a href="#1-测试组件存在" class="headerlink" title="1.测试组件存在"></a>1.测试组件存在</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">describe(<span class="string">'Button'</span>, () =&gt; &#123;</span><br><span class="line">    it(<span class="string">'存在.'</span>, () =&gt; &#123;</span><br><span class="line">        expect(Button).to.be.ok</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;）</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-测试props传入组件"><a href="#2-测试props传入组件" class="headerlink" title="2.测试props传入组件"></a>2.测试props传入组件</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">describe(<span class="string">'props'</span>, () =&gt; &#123;</span><br><span class="line">    it(<span class="string">'接受span属性'</span>, () =&gt; &#123;</span><br><span class="line">        <span class="keyword">const</span> div = <span class="built_in">document</span>.createElement(<span class="string">'div'</span>)</span><br><span class="line">        <span class="built_in">document</span>.body.appendChild(div)</span><br><span class="line">        <span class="keyword">const</span> Constructor = Vue.extend(Col)</span><br><span class="line">        <span class="keyword">const</span> vm = <span class="keyword">new</span> Constructor(&#123;</span><br><span class="line">            propsData: &#123;</span><br><span class="line">                span: <span class="number">1</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).$mount(div)</span><br><span class="line">        expect(vm.$el.classList.contains(<span class="string">'cssClass'</span>)).to.equal(<span class="literal">true</span>)</span><br><span class="line">        vm.$el.remove()</span><br><span class="line">        vm.$destroy()</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-测试事件"><a href="#3-测试事件" class="headerlink" title="3.测试事件"></a>3.测试事件</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">describe(<span class="string">'Button'</span>, () =&gt; &#123;    </span><br><span class="line">    it(<span class="string">'点击 button 触发 click 事件'</span>, () =&gt; &#123;</span><br><span class="line">        <span class="keyword">const</span> Constructor = Vue.extend(Button)</span><br><span class="line">        <span class="keyword">const</span> vm = <span class="keyword">new</span> Constructor(&#123;</span><br><span class="line">            propsData: &#123;</span><br><span class="line">                icon: <span class="string">'settings'</span>,</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).$mount()</span><br><span class="line">        <span class="keyword">const</span> callback = sinon.fake();</span><br><span class="line">        vm.$on(<span class="string">'click'</span>, callback)</span><br><span class="line">        vm.$el.click()</span><br><span class="line">        expect(callback).to.have.been.called</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;）</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-测试CSS样式"><a href="#4-测试CSS样式" class="headerlink" title="4.测试CSS样式"></a>4.测试CSS样式</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">describe(<span class="string">'Row'</span>, () =&gt; &#123;</span><br><span class="line">    it(<span class="string">'接受gutter属性'</span>, (done) =&gt; &#123;</span><br><span class="line">        Vue.component(<span class="string">'g-row'</span>, Row)</span><br><span class="line">        Vue.component(<span class="string">'g-col'</span>, Col)</span><br><span class="line">        <span class="keyword">const</span> div = <span class="built_in">document</span>.createElement(<span class="string">'div'</span>)</span><br><span class="line">        <span class="built_in">document</span>.body.appendChild(div)</span><br><span class="line">        div.innerHTML = <span class="string">`</span></span><br><span class="line"><span class="string">            &lt;g-row gutter="20"&gt;</span></span><br><span class="line"><span class="string">                &lt;g-col span="12"&gt;&lt;/g-col&gt;</span></span><br><span class="line"><span class="string">                &lt;g-col span="12"&gt;&lt;/g-col&gt;</span></span><br><span class="line"><span class="string">            &lt;/g-row&gt;</span></span><br><span class="line"><span class="string">        `</span></span><br><span class="line">        <span class="keyword">const</span> vm = <span class="keyword">new</span> Vue(&#123;</span><br><span class="line">            el: div</span><br><span class="line">        &#125;)</span><br><span class="line">        setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> cols = vm.$el.querySelectorAll(<span class="string">'.col'</span>)</span><br><span class="line">            <span class="keyword">const</span> rows = vm.$el.querySelector(<span class="string">'.row'</span>)</span><br><span class="line">            expect(getComputedStyle(cols[<span class="number">0</span>]).paddingLeft).to.eq(<span class="string">'10px'</span>)</span><br><span class="line">            expect(getComputedStyle(cols[<span class="number">1</span>]).paddingRight).to.eq(<span class="string">'10px'</span>)</span><br><span class="line">            expect(getComputedStyle(rows).marginRight).to.eq(<span class="string">'-10px'</span>)</span><br><span class="line">            expect(getComputedStyle(rows).marginLeft).to.eq(<span class="string">'-10px'</span>)</span><br><span class="line">            vm.$el.remove()</span><br><span class="line">            vm.$destroy()</span><br><span class="line">            <span class="comment">//done()防止执行完主线程自动关闭浏览器不执行队列中的settimeout</span></span><br><span class="line">            done()</span><br><span class="line">        &#125;, <span class="number">0</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>杂</category>
+      </categories>
+      <tags>
+        <tag>单元测试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>发布高程影像服务</title>
+    <url>/blog/2020/06/12/%E5%8F%91%E5%B8%83%E9%AB%98%E7%A8%8B%E5%BD%B1%E5%83%8F%E6%9C%8D%E5%8A%A1/</url>
+    <content><![CDATA[<h2 id="由-ArcMap-发布"><a href="#由-ArcMap-发布" class="headerlink" title="由 ArcMap 发布"></a>由 ArcMap 发布</h2><p>DTM 数据集配置完成后，将其作为 ArcMap 中的缓存影像服务进行发布。</p>
+<ol>
+<li><blockquote>
+<p>启动 ArcMap。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>如果您还没有 GIS 服务器发布方连接，可在目录树中创建一个。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>连接到包含栅格数据集的地理数据库或将连接映射到包含 TIFF 的文件夹。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>右键单击 DTM，然后单击共享为影像服务。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>选择发布服务，然后单击下一步。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>选择您希望接收发布内容的目标 GIS 服务器，输入影像服务的名称，然后单击下一步。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>指定 GIS 服务器上您希望用来存储影像服务的文件夹。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>单击继续打开服务编辑器。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>您可以为服务设置不同的参数和值，但必须在服务编辑器中设置所需的以下值：</p>
+<ol>
+<li><blockquote>
+<p>在功能面板上，选择影像。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>在缓存面板上，选择以下全部内容：</p>
+<ul>
+<li>为绘制此影像服务选项选择使用缓存中的切片。</li>
+<li>选择 ArcGIS Online/Bing 地图/Google 地图作为切片方案。</li>
+<li>指定适合您的数据的细节层次。</li>
+<li>选择发布服务时自动构建缓存选项。</li>
+</ul>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+</li>
+<li><blockquote>
+<p>打开缓存 &gt; 高级设置面板，设置以下值：</p>
+<ol>
+<li><blockquote>
+<p>指定 GIS 服务器上缓存目录的位置。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>将要缓存的感兴趣区域设置为数据集全图范围。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>选择 LERC 作为切片格式。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>默认压缩值 0.5 适合世界影像服务，但大多数情况下，您将为小得多的地区（例如，城市或地区）发布高程数据。在这些情况下，将压缩设置为 0.1。</p>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+</li>
+<li><blockquote>
+<p>将描述、汇总和标签添加到项目描述面板中。</p>
+</blockquote>
+</li>
+<li><blockquote>
+<p>如果发布到联合的 GIS 服务器上，请打开共享 面板，与门户或任何人共享服务。</p>
+</blockquote>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>ESRI</category>
+        <category>数据处理</category>
+      </categories>
+      <tags>
+        <tag>高程影像</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WebGL 图元装配到光栅化与varying变量</title>
+    <url>/blog/2020/06/12/%E5%9B%BE%E5%85%83%E8%A3%85%E9%85%8D%E5%88%B0%E5%85%89%E6%A0%85%E5%8C%96%E4%B8%8Evarying%E5%8F%98%E9%87%8F/</url>
+    <content><![CDATA[<h2 id="WebGL-图元装配到光栅化与varying变量"><a href="#WebGL-图元装配到光栅化与varying变量" class="headerlink" title="WebGL 图元装配到光栅化与varying变量"></a>WebGL 图元装配到光栅化与varying变量</h2><p><strong>图元装配过程(primitive assembly process)</strong></p>
+<p><strong>几何图形装配(geometric shape assembly)</strong></p>
+<p>1.声明attribute vec4 a_Color 接受数据</p>
+<p>2.赋值给varying vec4 v_Color</p>
+<p>3.片元着色器中声明varying vec4 v_Color</p>
+<blockquote>
+<p>如果顶点着色器中有<strong>类型和命名相同的varying变量</strong>，那么顶点着色器赋给该变量的值就会被自动传入片元着色器。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> VSHADER_SOURCE = </span><br><span class="line"><span class="string">"attribute vec4 a_Position;\n"</span> +</span><br><span class="line"><span class="string">"attribute float a_PointSize;\n"</span> +</span><br><span class="line"><span class="string">"attribute vec4 a_Color;\n"</span> +</span><br><span class="line"><span class="string">"varying vec4 v_Color;\n"</span> + </span><br><span class="line"><span class="comment">// varying variable</span></span><br><span class="line"><span class="string">"uniform mat4 u_ModelMatrix;\n"</span> +</span><br><span class="line"><span class="string">"void main() &#123;\n"</span> +</span><br><span class="line"><span class="string">"  gl_Position = u_ModelMatrix * a_Position;\n"</span> +</span><br><span class="line"><span class="string">"  gl_PointSize = a_PointSize;\n"</span> +</span><br><span class="line"><span class="string">"  v_Color = a_Color;\n"</span> +</span><br><span class="line"> <span class="comment">// Pass the data to the fragment shader</span></span><br><span class="line"><span class="string">"&#125;\n"</span></span><br><span class="line"><span class="keyword">let</span> FSHADER_SOURCE = </span><br><span class="line"><span class="string">"precision mediump float;\n"</span> +</span><br><span class="line"><span class="string">"uniform vec4 u_FragColor;\n"</span> +</span><br><span class="line"><span class="string">"varying vec4 v_Color;\n"</span> + </span><br><span class="line"><span class="comment">// Receive the data from the vertex shader</span></span><br><span class="line"><span class="string">"void main() &#123;\n"</span> +</span><br><span class="line"><span class="string">"  gl_FragColor = v_Color;\n"</span> +</span><br><span class="line"><span class="string">"&#125;\n"</span>,</span><br></pre></td></tr></table></figure>
+
+<h3 id="varying变量的作用和内插过程"><a href="#varying变量的作用和内插过程" class="headerlink" title="varying变量的作用和内插过程"></a>varying变量的作用和内插过程</h3><p>varying变量。只能是float、vec2、vec3、vec4、mat2、mat3、mat4。必须全局。最少支持8个。<br>顶点着色器中的<code>v_Color</code>在传入片元着色器之前经过了内插过程。WebGL根据我们传入的颜色值，自动计算出所有片元的颜色，赋值给片元着色器中的<code>v_Color</code>。</p>
+<h3 id="图元装配到光栅化"><a href="#图元装配到光栅化" class="headerlink" title="图元装配到光栅化"></a>图元装配到光栅化</h3><p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/shader.png" alt="绘制过程"></p>
+<ol>
+<li>缓冲区对象中第一个坐标传递给<code>a_Position</code>继而被赋值给<code>gl_Position</code>，赋值后改顶点进入图形装配区，并储存。</li>
+<li>重复执行顶点着色器，将所有坐标点传入并存储在装配区。</li>
+<li>装配图形。根据<code>gl.drawArrays()</code>第一个参数决定如何装配顶点。</li>
+<li>光栅化。将装配好的图元转化为片元(像素)。</li>
+<li>光栅化结束后，逐片元调用片元着色器。每次处理一个片元，计算出该片元颜色，写入颜色缓冲区。直到所有片元被处理完，浏览器显示出结果。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>WebGL</category>
+        <category>笔记</category>
+      </categories>
+      <tags>
+        <tag>WebGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>瓦片(Tile)行列号计算方法</title>
+    <url>/blog/2020/06/12/%E7%93%A6%E7%89%87Tile%E8%A1%8C%E5%88%97%E5%8F%B7%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h3 id="1-行列号编号规则"><a href="#1-行列号编号规则" class="headerlink" title="1.行列号编号规则"></a>1.行列号编号规则</h3><p>​    在讲瓦片的时候说到过这些规则，这里重复一遍：</p>
+<p>​    要在浏览器上把每个切片放到正确的位置，保证拼接正确，就要将每个瓦片进行<strong>编号</strong>，有了编号后就知道每个瓦片对应加载的位置，此处可以脑补拼图。下面先了解下编号的规则。</p>
+<blockquote>
+<p><strong>谷歌XYZ</strong>：Z表示缩放层级，Z=zoom；XY的原点在左上角，X从左向右，Y从上向下。</p>
+<p><strong>TMS</strong>：开源产品的标准，Z的定义与谷歌相同；XY的原点在左下角，X从左向右，Y从下向上。</p>
+<p><strong>QuadTree</strong>：微软Bing地图使用的编码规范，Z的定义与谷歌相同，同一层级的瓦片不用XY两个维度表示，而只用一个整数表示，该整数服从四叉树编码规则</p>
+<p><strong>百度XYZ</strong>：Z从1开始，在最高级就把地图分为四块瓦片；XY的原点在经度为0纬度位0的位置，X从左向右，Y从下向上。    </p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png" alt="瓦片原理图3"></p>
+<h3 id="2-经纬度和行列号如何换算"><a href="#2-经纬度和行列号如何换算" class="headerlink" title="2.经纬度和行列号如何换算"></a>2.经纬度和行列号如何换算</h3><p>​    我们知道加载瓦片需要通过相应的URL请求到对应的图片并加载至浏览器正确的位置上。通常我们使用的地图API（如ArcGIS API for JS）会帮我们把参数计算出来，我们只要拼接成正确的URL就可以加载瓦片图层了。</p>
+<p>​    但是，如果我们想要自己爬取下载网上一些地图的瓦片，或者自己撸一个加载瓦片的方法，就要必须知道如何<strong>经纬度</strong>转换成瓦片的<strong>行列号</strong>。</p>
+<p>​    先补一个。下列公式定义在使用墨卡托投影的地图中，从纬线φ和经线λ如何推导为坐标系中的点坐标x和y。<a href="https://zh.wikipedia.org/wiki/%E9%BA%A5%E5%8D%A1%E6%89%98%E6%8A%95%E5%BD%B1%E6%B3%95" target="_blank" rel="noopener">墨卡托投影法</a></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYto84.png" alt="XYto84"></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/84toXY.png" alt="84toXY"></p>
+<h4 id="1）OpenStreetMap"><a href="#1）OpenStreetMap" class="headerlink" title="1）OpenStreetMap"></a>1）OpenStreetMap</h4><p>​    <strong>特性1:</strong>z: [0~18] x,y: [0~(2^z-1)]</p>
+<p>​    <strong>特性2:</strong>第z级别，x,y方向的瓦片个数均为：2^z</p>
+<p>​    <strong>特性3:</strong>图片（z,x,y）像素（m,n）[注：像素坐标以左上角为原点，x轴向右，y轴向下]的经纬度[单位：度]分别为：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL1.png" alt="osmBLtoXY1"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmXYtoBL2.png" alt="osmBLtoXY1"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/osmBLtoXY.png" alt="osmBLtoXY"></p>
+<h4 id="2）Google-Map"><a href="#2）Google-Map" class="headerlink" title="2）Google Map"></a>2）Google Map</h4><p>​    <strong>特性1:</strong>z: [0~18]    x,y: [0~(2^z-1)]</p>
+<p>​    <strong>特性2:</strong>图片（x,y,z）像素（m,n）[注：像素坐标以左上角为原点，x轴向右，y轴向下]的经纬度[单位：度]与openmapstreet方法一致。</p>
+<h4 id="3）Bing-Map"><a href="#3）Bing-Map" class="headerlink" title="3）Bing Map"></a>3）Bing Map</h4><p>​    </p>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>原理</category>
+      </categories>
+      <tags>
+        <tag>瓦片地图</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>画过的图</title>
+    <url>/blog/2022/05/17/%E7%94%BB%E8%BF%87%E7%9A%84%E5%9B%BE/</url>
+    <content><![CDATA[<p><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/线密度2.png" target="_blank" rel="noopener">线密度 2</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/线密度.jpg" target="_blank" rel="noopener">线密度</a></p>
+<p><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/交通设施热力.png" target="_blank" rel="noopener">交通设施热力</a></p>
+<p><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/人口密度1.png" target="_blank" rel="noopener">人口密度 1</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/人口密度2.png" target="_blank" rel="noopener">人口密度 2</a></p>
+<p><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/公共服务热力1.png" target="_blank" rel="noopener">公共服务热力 1</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/公共服务热力2.png" target="_blank" rel="noopener">公共服务热力 2</a></p>
+<p><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/可达性.png" target="_blank" rel="noopener">可达性</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/可达性1.png" target="_blank" rel="noopener">可达性 1</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/可达性2.png" target="_blank" rel="noopener">可达性 2</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/可达性3.png" target="_blank" rel="noopener">可达性 3</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/可达性4.png" target="_blank" rel="noopener">可达性 4</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/可达性5.png" target="_blank" rel="noopener">可达性 5</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/可达性6.png" target="_blank" rel="noopener">可达性 6</a></p>
+<p><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/商业设施热力.png" target="_blank" rel="noopener">商业设施热力</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/居住设施热力.png" target="_blank" rel="noopener">居住设施热力</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/绿地设施热力.png" target="_blank" rel="noopener">绿地设施热力</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/工业设施热力.png" target="_blank" rel="noopener">工业设施热力</a></p>
+<p><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/gif1.gif" target="_blank" rel="noopener">gif1</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/gif2.gif" target="_blank" rel="noopener">gif2</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/gif3.gif" target="_blank" rel="noopener">gif3</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/gif4.gif" target="_blank" rel="noopener">gif4</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/gif5.gif" target="_blank" rel="noopener">gif5</a><br><a href="https://github.com/xcsf/blog-figure-bed/raw/master/atlas/gif6.gif" target="_blank" rel="noopener">gif6</a></p>
+]]></content>
+      <categories>
+        <category>GIS出图</category>
+        <category>交通</category>
+      </categories>
+      <tags>
+        <tag>图集</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>计算点到线段最短距离---矢量法</title>
+    <url>/blog/2020/06/12/%E8%AE%A1%E7%AE%97%E7%82%B9%E5%88%B0%E7%BA%BF%E6%AE%B5%E6%9C%80%E7%9F%AD%E8%B7%9D%E7%A6%BB-%E7%9F%A2%E9%87%8F%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="计算点到线段最短距离——矢量法"><a href="#计算点到线段最短距离——矢量法" class="headerlink" title="计算点到线段最短距离——矢量法"></a>计算点到线段最短距离——矢量法</h2><h4 id="一、思路"><a href="#一、思路" class="headerlink" title="一、思路"></a>一、思路</h4><blockquote>
+<p>矢量算法过程清晰，如果具有一定的空间几何基础，则是解决此类问题时应优先考虑&gt;的方法。当需要计算的数据量很大时，这种方式优势明显。</p>
+</blockquote>
+<blockquote>
+<p>由于矢量具有方向性，故一些方向的判断直接根据其正负号就可以得知，使得其中的一些问题得以很简单的解决。</p>
+</blockquote>
+<p>根据下图，可以看到，我们只需计算<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8FAC.png" alt="矢量AC">)将其与<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8FAB.png" alt="矢量AB">做比较即可分出以下结果。<br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8F%E6%B3%951.jpg" alt="矢量法示意"></p>
+<h4 id="二、步骤"><a href="#二、步骤" class="headerlink" title="二、步骤"></a>二、步骤</h4><p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8FAP.png" alt="矢量AP">)·<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8FAB.png" alt="矢量AB">的单位向量，即可得到AC的长度值；<br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8F%E6%B3%952.jpg" alt="APAB"><br>AC的模长与AB的单位向量相乘可以构成AC向量，所以容易得到:<br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8F%E6%B3%953.png" alt="矢量法3"><br>最后，根据其正负以及大小可以判断出三种情况：<br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%A2%E9%87%8F%E6%B3%954.jpg" alt="矢量法4"></p>
+<h4 id="三、代码实现"><a href="#三、代码实现" class="headerlink" title="三、代码实现"></a>三、代码实现</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Segment</span><br><span class="line">&#123;</span><br><span class="line">    private Point pt1;</span><br><span class="line">    private Point pt2;</span><br><span class="line">    private double length;</span><br><span class="line">    public Segment(Point pt1, Point pt2)</span><br><span class="line">    &#123;</span><br><span class="line">        this.pt1 &#x3D; pt1;</span><br><span class="line">        this.pt2 &#x3D; pt2;</span><br><span class="line">        double dx &#x3D; Math.Abs(pt1.X - pt2.X);</span><br><span class="line">        double dy &#x3D; Math.Abs(pt1.Y - pt2.Y);</span><br><span class="line">        this.length &#x3D; Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2));</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F;&#x2F; &lt;summary&gt;</span><br><span class="line">    &#x2F;&#x2F;&#x2F; Finding the shortest distance from a point to the line segment by vector method(矢量法)</span><br><span class="line">    &#x2F;&#x2F;&#x2F; &lt;&#x2F;summary&gt;</span><br><span class="line">    &#x2F;&#x2F;&#x2F; &lt;param name&#x3D;&quot;p&quot;&gt;&lt;&#x2F;param&gt;</span><br><span class="line">    &#x2F;&#x2F;&#x2F; &lt;returns&gt;&lt;&#x2F;returns&gt;</span><br><span class="line">    public double Dis2Pt(Point p)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F;两向量点乘 P:p  A:pt1   B:pt2  C:垂足</span><br><span class="line">        &#x2F;&#x2F;矢量法</span><br><span class="line">        &#x2F;&#x2F;不存在垂足C，求与A点距离</span><br><span class="line">        double APAB &#x3D; (pt2.X - pt1.X) * (p.X - pt1.X) + (pt2.Y - pt1.Y) * (p.Y - pt1.Y);</span><br><span class="line">        if (APAB &lt;&#x3D; 0) &#123; return Math.Sqrt(Math.Pow((p.X - pt1.X), 2) + Math.Pow((p.Y - pt1.Y), 2)); &#125;</span><br><span class="line">        &#x2F;&#x2F;不存在垂足C，求与B点距离</span><br><span class="line">        double AB2 &#x3D; Math.Pow(length, 2);</span><br><span class="line">        if (APAB &gt;&#x3D; AB2) &#123; return Math.Sqrt(Math.Pow((p.X - pt2.X), 2) + Math.Pow((p.Y - pt2.Y), 2)); &#125;</span><br><span class="line">        &#x2F;&#x2F;存在垂足C</span><br><span class="line">        double r &#x3D; APAB &#x2F; AB2;</span><br><span class="line">        double Cx &#x3D; pt1.X + (pt2.X - pt1.X) * r;</span><br><span class="line">        double Cy &#x3D; pt1.Y + (pt2.Y - pt1.Y) * r;</span><br><span class="line">        return Math.Sqrt(Math.Pow((p.X - Cx), 2) + Math.Pow((p.Y - Cy), 2));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>原理</category>
+      </categories>
+      <tags>
+        <tag>计算几何</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>3dTiles生产简介</title>
+    <url>/blog/2022/06/13/3dTiles%E7%94%9F%E4%BA%A7%E7%AE%80%E4%BB%8B/</url>
+    <content><![CDATA[<h3 id="3dTiles-格式简介"><a href="#3dTiles-格式简介" class="headerlink" title="3dTiles 格式简介"></a>3dTiles 格式简介</h3><p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D.png" alt="3dTiles生产介绍"></p>
+<p>由上图可知:</p>
+<p>3D Tiles 是由，瓦片集数据和瓦片数据组成。</p>
+<p><strong>瓦片集数据：</strong>一个 JSON 文件存储，通常为 tileset.json。</p>
+<p><strong>瓦片数据：</strong>最终在 cesium 中展示的数据都保存在瓦片数据中。</p>
+<h3 id="一、瓦片集数据"><a href="#一、瓦片集数据" class="headerlink" title="一、瓦片集数据"></a>一、瓦片集数据</h3><p>一个简单的例子：</p>
+<p>通过这个例子可以直观的了解 3D Tiles 格式数据。</p>
+<p>文件目录：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D1.png" alt="3dTiles生产介绍"></p>
+<p>tileset.json 文件：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D2.png" alt="3dTiles生产介绍"></p>
+<p>该切片集切片组织方式最为简单，其只有 3 个瓦片数据。根节点为最简化版本，其 content 指向精细程度最低的瓦片 dragon_low.b3dm。其 children 包含次精细程度瓦片，依次到最精细层。运行时根据 geometricError 参数进行瓦片的选择渲染。</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D3.png" alt="3dTiles生产介绍"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D4.png" alt="3dTiles生产介绍"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D5.png" alt="3dTiles生产介绍"></p>
+<p>asset(必需):</p>
+<p>瓦片集的元数据对象。其中 asset.version(必需)属性定义了 3D Tiles 版本。</p>
+<p>geometricError(必需):</p>
+<p>根据运行时引入的最大屏幕空间误差(SSE)，决定哪个层次的细节应该呈现。。每个 tileset 和每个 tile 都有一个几何误差属性。为非负数，以米为单位，为切片的原始几何的简化来表示的误差值。如：根瓦片是最简化的版本，有最大的几何误差，而源几何数据(叶子瓦片)则具有接近 0 的几何误差。<strong>一般可以直接用瓦片集外包区域体对角线表示。</strong></p>
+<p>root(必需):</p>
+<p>根瓦片。每个 Tile 中的属性如下：</p>
+<p>boundingVolume(必需):</p>
+<p>切片内容包围框。只有 box,sphere,region 属性。</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D6.png" alt="3dTiles生产介绍"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D7.png" alt="3dTiles生产介绍">)<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D8.png" alt="3dTiles生产介绍">)<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D9.png" alt="3dTiles生产介绍"></p>
+<p>box:定义右手笛卡尔坐标系(x,y,z),z 向上，第一行(前三个)元素为边界框中心坐标。第二行为 x 轴方向的半长。第三行为 y 轴方向半长。第四行为 z 轴方向半长；</p>
+<p>sphere:前三个值为球体中心坐标值，最后一个为球体半径(米)；</p>
+<p>region:定义了在 84 坐标系下具有纬度、经度、和高度坐标的边界区域，[西、南、东、北、最小高度、最大高度。</p>
+<p>refine:</p>
+<p>根瓦片必需，子瓦片默认继承。可以选择子切片是以”ADD”的方式还是”REPLACE”的方式进行渲染。</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D10.png" alt="3dTiles生产介绍"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D11.png" alt="3dTiles生产介绍"></p>
+<p>content:</p>
+<p>通过 content 属性中的 URI 引用与 tile 关联的实际可呈现的内容。如果是相对路径则是相对 tilesetJSON 文件。除此之外 content 也包含一个 boundingVolume(非必须)属性，其与外层 tile. boundingVolume 不同处在于 content. boundingVolume 是一个紧密贴合的边界框。</p>
+<p>children:</p>
+<p>子瓦片数组，对于叶子瓦片，此属性可能未定义或者数组长度为 0；子切片内容由其父切片边界范围完全包围。并有更小的 geometricError。</p>
+<p>一个复杂例子:</p>
+<p>文件目录：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D12.png" alt="3dTiles生产介绍"></p>
+<p>tileset.json 文件</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D13.png" alt="3dTiles生产介绍"></p>
+<p>这里引用外部瓦片集”lab_b_0.json”，<strong>当指向外部切片集时 tile.children 必须为空或者未定义。</strong></p>
+<p>引用不能形成循环。</p>
+<p>transform：支持局部坐标系统时可定义。默认为单位矩阵。( 前端操作瓦片可利用该属性，如炸开效果。)我们展示需求不需要支持地理坐标系，应该不太需要这个参数。</p>
+<p>lab_b_0.json 文件:</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D14.png" alt="3dTiles生产介绍"></p>
+<p>这是一个由多个瓦片构成的瓦片集，可以看到该瓦片集根节点<strong>无 content</strong>，包含了 11 个 children。这与前面一个简单的例子不同。这是因为其生成瓦片方式的不同，这里是通过无层次结构的树状结构来组织。由此可知 3dtile 可以使用多种不同类型的空间数据结构组织瓦片。而其运行时引擎是通用的，可以呈现 tileset 定义的任何树。下图是常用树状结构：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D15.png" alt="3dTiles生产介绍"></p>
+<p>对比超图生成切片所支持的有，四叉树和八叉树结构。我们先尝试简单的四叉树结构来组织切片。</p>
+<h3 id="简单的瓦片生成方法"><a href="#简单的瓦片生成方法" class="headerlink" title="简单的瓦片生成方法"></a>简单的瓦片生成方法</h3><p>想象我们拿到了一个模型，里面有若干个图元(一个顶点集组成)构成了多个对象。我们要做的是使用四叉树的结构将空间划分下去。起始空为整个模型的外包围框，一生四，四生八…… 这样空间被我们分成了一个个小的瓦片，这里我们要定义<strong>瓦片边长</strong>来控制每个瓦片的大小，根据瓦片的范围去选择模型中得到图元，最后瓦片空间里存在的若干个模型图元即是瓦片的内容。如果每个瓦片过大，里面包含的对象就过多，在加载这一个瓦片时则会发生卡顿。如果瓦片过小，则瓦片文件则会过于碎片，会增加前端请求量和计算量。通过这个步骤，我们可以得到一个 tile 的<strong>索引树</strong>。同时也将模型按照空间分成了<strong>多个部分</strong>(瓦片内容)，同时经过计算得出每个<strong>瓦片的包围盒</strong>，<strong>其父瓦片包围盒必须包围子瓦片的包围盒。</strong></p>
+<p>通过上面的处理，我们已经把 tile 组织了起来，必需的参数还差一个 geometricError，上文写到，使用对角线长作为参数，计算简单。如果显示效果有问题，这个参数有待调整。</p>
+<p>这样对于切片集，所必需的的 asset、geometricError、refine、root.boundingVolume、root. geometricError 属性都可以计算出来，生成对应的 json 文件。</p>
+<h3 id="LOD-数据生成"><a href="#LOD-数据生成" class="headerlink" title="LOD 数据生成"></a>LOD 数据生成</h3><p>到此，还有一个问题，就是我们常说的 LOD，经过上面处理我们仅仅是将一个模型分块(瓦片)，如果不做 LOD 即代表原始模型被分成小块传输并加载显示。所以在瓦片化后还需要在叶子瓦片下挂接多级精细程度的模型，就像第一个简单的例子那样，同一个模型分为三个精细层，通过 geometricError 去控制选择。所以，geometricError 如果选择对角线长作为参数，会出现一个问题，比如，简化 10%的对象和原始对象对角线长几乎一样，这样参数很可能会失效，初步考虑需要在简化面的过程中去提取出这个参数。我们可以先搁置这个问题，先采用简单的对角线长来计算，最后根据展示效果再来调整。</p>
+<p>对于瓦片 LOD 的处理，这里相对复杂，寻找相关图形算法库自带实现对比效果应该是快速的方法。如果要自己实现减面算法，单纯的实现并不难，但是如果考虑到效率以及简化限度的控制比较麻烦比如，一个正方体他的 lod 不应该变形成其他的形状，对于 BIM 数据而言许多对象应该是存在类似问题，如果远看一个立方体变成一个四面体则很影响效果。</p>
+<p>CGAL 中应该是存在解决相关问题的程序包，不过还需要尝试。</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D16.png" alt="3dTiles生产介绍"></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D17.png" alt="3dTiles生产介绍"></p>
+<h3 id="瓦片格式转换"><a href="#瓦片格式转换" class="headerlink" title="瓦片格式转换"></a>瓦片格式转换</h3><p>最后需要将每个瓦片内容生成 3dtile 的瓦片的格式，即 b3dm、i3dm 等等。我们应该是使用常用的 b3dm 格式。对于该格式生成开源已经有少量工具(官方 obj2gltf 工具)可以借助，这一步涉及到属性数据及对象区分(比如，后续点击展示信息需要用到)。总体来说将模型在瓦片化之后，将每个瓦片内容转换成 b3dm 导出，存储路径即为 tile.content.uri 的值。具体格式内容这里不多描述，后续可以参考标准做转换。</p>
+<h3 id="简单生产流程实现"><a href="#简单生产流程实现" class="headerlink" title="简单生产流程实现"></a>简单生产流程实现</h3><ol>
+<li><p>完成 obj-&gt;gltf-&gt;glb-&gt;b3dm 格式转换。</p>
+</li>
+<li><p>拆分 obj 中的对象并将每个对象生成对应的 b3dm 瓦片文件。同时需要按照所期望的加载顺序对瓦片进行排序。如：先加载外壳瓦片展示模型整体情况，再加载内部瓦片。</p>
+</li>
+<li><p>根据排序，组织 b3dm 瓦片计算生成对应瓦片集 tileset.json 文件。</p>
+</li>
+<li><p>将不同 LOD 的 OBJ 合成至同一瓦片集生成 tileset.json 文件</p>
+</li>
+<li><p>渲染加载效果：可以看到每个瓦片对象，根据第 3 步，定义的 tileset.json，按顺序渲染出来。</p>
+</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/3dTiles%E7%94%9F%E4%BA%A7%E4%BB%8B%E7%BB%8D18.gif" alt="3dTiles生产介绍"></p>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>Cesium</category>
+        <category>3dTiles</category>
+      </categories>
+      <tags>
+        <tag>Cesium</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>关于跨域</title>
+    <url>/blog/2020/06/12/%E5%85%B3%E4%BA%8E%E8%B7%A8%E5%9F%9F/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>记录一下跨域的一些学习笔记吧。</p>
+<h2 id="跨域是啥"><a href="#跨域是啥" class="headerlink" title="跨域是啥"></a>跨域是啥</h2><p>JS处于安全方面考虑，因为同源策略限制，不允许调用不同域的对象，不同域的之间相互请求资源就叫”跨域”</p>
+<h3 id="怎么算不同域"><a href="#怎么算不同域" class="headerlink" title="怎么算不同域"></a>怎么算不同域</h3><p>看表看表，从其他地方扒过来的。。。。<br><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E8%B7%A8%E5%9F%9F%E8%A1%A8.jpg" alt="跨域表"><br>就是看域名地址、协议、域名、端口必须一样才可以，不包括IP地址。<br>要是协议和端口都不一样，前端没有办法</p>
+<h2 id="同源策略及其限制是啥"><a href="#同源策略及其限制是啥" class="headerlink" title="同源策略及其限制是啥"></a>同源策略及其限制是啥</h2><blockquote>
+<p>同源策略限制从一个源加载的文档或脚本如何与来自另一个源的资源进行交互。这是一个用于隔离潜在恶意文件的关键的安全机制。<strong>它的存在可以保护用户隐私信息，防止身份伪造等(读取Cookie)。</strong></p>
+</blockquote>
+<p>同源策略限制内容有：</p>
+<ul>
+<li>Cookie、LocalStorage、IndexedDB 等存储性内容</li>
+<li>DOM节点</li>
+<li>AJAX 请求不能发送</li>
+</ul>
+<p>但是以下标签是允许跨域加载资源：</p>
+<ul>
+<li><code>&lt;img src=&quot;&quot;&gt;</code></li>
+<li><code>&lt;link href=&quot;&quot;&gt;</code></li>
+<li><code>&lt;script src=&quot;&quot;&gt;</code></li>
+<li><code>&lt;iframe src=&quot;&quot;&gt;</code></li>
+</ul>
+<h2 id="处理跨域方法"><a href="#处理跨域方法" class="headerlink" title="处理跨域方法"></a>处理跨域方法</h2><h3 id="一、-JSONP（JSON-with-Padding）"><a href="#一、-JSONP（JSON-with-Padding）" class="headerlink" title="一、 JSONP（JSON with Padding）"></a>一、 JSONP（JSON with Padding）</h3><p>script 标签的src属性可以跨域引用文件，jsonp是请求之后后台包装好一段json，并且把数据放在一个callback函数，返回一个js文件，动态引入这个文件，下载完成js之后，会去调用这个callback,通过这样访问数据。</p>
+<p>在换句话说：</p>
+<p>1.我们用ajax无法跨域访问资源</p>
+<p>2.发现script标签的src属性没有这个限制</p>
+<p>3.那我们现在写个url，加上需要的一些参数，比如<code>?callback=foo</code>，告诉服务器本地要用返回数据的函数叫啥。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> foo = <span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">    <span class="comment">//do something</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>4.服务端实现这个功能：根据这个url里带的参数，生成一个js文件，就是调用一下这个函数，生成这个函数需要的数据对象传传入，像下面这样：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">foo(&#123;</span><br><span class="line">    <span class="string">"key1"</span>: <span class="string">"value1"</span>,</span><br><span class="line">    <span class="string">"key2"</span>: <span class="string">"value2"</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>5.然后呢，客户端把这个url放到script标签的src属性里，就是相当于引入了上面调用函数的这段代码。</p>
+<p><strong>无非就是函数的声明在客户端，通过script标签src属性引入外部js文件执行函数，得到结果。</strong>这样服务器就需要动态的生成js文件。很多框架吧jsonp和ajax封装在一起方便使用，但是要知道他们本质是不同的东西。网上扒了一个图。。。应该能看出点东西吧</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/ajax.png" alt="ajax"></p>
+<h4 id="1-JSONP和AJAX对比"><a href="#1-JSONP和AJAX对比" class="headerlink" title="1.JSONP和AJAX对比"></a>1.JSONP和AJAX对比</h4><p>AJAX属于同源策略，JSONP属于非同源策略（跨域请求）。</p>
+<h4 id="2-JSONP优缺点"><a href="#2-JSONP优缺点" class="headerlink" title="2.JSONP优缺点"></a>2.JSONP优缺点</h4><p>JSONP优点是兼容性好，可用于解决主流浏览器的跨域数据访问的问题。<strong>缺点是仅支持get方法具有局限性。</strong></p>
+<h3 id="二、CORS"><a href="#二、CORS" class="headerlink" title="二、CORS"></a>二、CORS</h3><blockquote>
+<p>CORS是一个W3C标准，全称是”跨域资源共享”（Cross-origin resource sharing）。它允许浏览器向跨源(协议 + 域名 + 端口)服务器，发出XMLHttpRequest请求，从而克服了AJAX只能同源使用的限制。</p>
+</blockquote>
+<p>浏览器将CORS请求分为<strong>简单请求（simple request）和非简单请求（not-so-simple request）</strong>。</p>
+<blockquote>
+<p> 简单请求满足以下两点：</p>
+<p>1) 请求方法是以下三种方法之一：<br>HEAD<br>GET<br>POST<br>2）HTTP的头信息不超出以下几种字段：<br>Accept<br>Accept-Language<br>Content-Language<br>Last-Event-ID<br>Content-Type：只限于三个值application/x-www-form-urlencoded、multipart/form-data、text/plain</p>
+</blockquote>
+<ul>
+<li><p>对于简单请求：需要在服务器<strong>响应头</strong>中添加<code>Access-Control-Allow-Origin：*</code>表示允许任意域名访问某个资源，当然也可以是一个完整的域名。如果服务器没有设置返回带有特殊头部的数据，简单请求GET或者POST请求仍然会发送，服务器的数据也会返回，但是浏览器会阻止Javascript获取这次请求。</p>
+</li>
+<li><p>对于非简单请求：会在正式通信之前，增加一次HTTP查询请求，称为”预检”请求（preflight）,发送一个OPTIONS请求到服务器。如果OPTIONS的请求，服务器没有做出适当的返回，后面真实的请求将不会发送。</p>
+</li>
+</ul>
+<h4 id="来认识一下头信息（请求和响应）"><a href="#来认识一下头信息（请求和响应）" class="headerlink" title="来认识一下头信息（请求和响应）"></a>来认识一下头信息（请求和响应）</h4><ol>
+<li><p>Access-Control-Allow-Origin</p>
+<p>由服务器返回，<code>*</code>允许表示任意域名,或者一个完整的域名名字。</p>
+</li>
+</ol>
+<blockquote>
+<p>如果你需要客户端传递验证信息到头部（比如：cookies）。这个值不能为 * —— 必须为完整的域名（这点很重要）。</p>
+</blockquote>
+<ol start="2">
+<li><p>Access-Control-Allow-Credentials</p>
+<p>这个头部信息只会在服务器支持通过cookies传递验证信息的返回数据里。它的值只有一个就是 true。跨站点带验证信息时，服务器必须要争取设置这个值，服务器才能获取到用户的cookie。</p>
+</li>
+<li><p>Access-Control-Allow-Headers</p>
+<p>提供一个逗号分隔的列表表示服务器支持的请求数据类型。假如你使用自定义头部(比如：x-authentication-token 服务器需要在返回OPTIONS请求时，要把这个值放到这个头部里，否则请求会被阻止)。</p>
+</li>
+<li><p>Access-Control-Allow-Methods</p>
+<p>一个逗号分隔的列表，表明服务器支持的请求类型（比如：GET, POST）</p>
+</li>
+<li><p>Origin</p>
+<p>这个头部信息，属于请求数据的一部分。这个值表明这个请求是从浏览器打开的哪个域名下发出的。出于安全原因，浏览器不允许你修改这个值。</p>
+</li>
+</ol>
+<ol start="6">
+<li><p>Access-Control-Max-Age</p>
+<p>该字段可选，用来指定本次预检请求的有效期，单位为秒。在有效期间，不用发出另一条预检请求。</p>
+</li>
+</ol>
+<h4 id="CORS优缺点"><a href="#CORS优缺点" class="headerlink" title="CORS优缺点"></a>CORS优缺点</h4><p>CORS要求浏览器(&gt;IE10)和服务器的同时支持，是跨域的根本解决方法，由浏览器自动完成。优点在于功能更加强大支持各种HTTP Method，缺点是兼容性不如JSONP。对于开发者来说，CORS通信与同源的AJAX通信没有差别，代码完全一样，只需要在服务器端加一些头信息即可</p>
+<h3 id="三、WebSocket"><a href="#三、WebSocket" class="headerlink" title="三、WebSocket"></a>三、WebSocket</h3><p>网上扒的、放着先后面再看。。</p>
+<blockquote>
+<p>Websocket是HTML5的一个持久化的协议，它实现了浏览器与服务器的全双工通信，同时也是跨域的一种解决方案。WebSocket和HTTP都是应用层协议，都基于 TCP 协议。但是 WebSocket 是一种双向通信协议，在建立连接之后，WebSocket 的 server 与 client 都能主动向对方发送或接收数据。同时，WebSocket 在建立连接时需要借助 HTTP 协议，连接建立好了之后 client 与 server 之间的双向通信就与 HTTP 无关了。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//前端代码：</span></span><br><span class="line">&lt;div&gt;user input：&lt;input type=<span class="string">"text"</span>&gt;&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">&lt;script src="./</span>socket.io.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string">&lt;script&gt;</span></span><br><span class="line"><span class="string">var socket = io('http://www.domain2.com:8080');</span></span><br><span class="line"><span class="string">// 连接成功处理</span></span><br><span class="line"><span class="string">socket.on('connect', function() &#123;   </span></span><br><span class="line"><span class="string">// 监听服务端消息</span></span><br><span class="line"><span class="string">    socket.on('message', function(msg) &#123;</span></span><br><span class="line"><span class="string">        console.log('data from server: ---&gt; ' + msg); </span></span><br><span class="line"><span class="string">    &#125;);</span></span><br><span class="line"><span class="string"> // 监听服务端关闭</span></span><br><span class="line"><span class="string">    socket.on('disconnect', function() &#123; </span></span><br><span class="line"><span class="string">        console.log('Server socket has closed.'); </span></span><br><span class="line"><span class="string">    &#125;);</span></span><br><span class="line"><span class="string">&#125;);</span></span><br><span class="line"><span class="string">document.getElementsByTagName('input')[0].onblur = function() &#123;</span></span><br><span class="line"><span class="string">    socket.send(this.value);</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string">&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Nodejs socket后台：</span></span><br><span class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>);</span><br><span class="line"><span class="keyword">var</span> socket = <span class="built_in">require</span>(<span class="string">'socket.io'</span>);</span><br><span class="line"><span class="comment">// 启http服务</span></span><br><span class="line"><span class="keyword">var</span> server = http.createServer(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">    res.writeHead(<span class="number">200</span>, &#123;</span><br><span class="line">        <span class="string">'Content-type'</span>: <span class="string">'text/html'</span></span><br><span class="line">    &#125;);</span><br><span class="line">    res.end();</span><br><span class="line">&#125;);</span><br><span class="line">server.listen(<span class="string">'8080'</span>);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'Server is running at port 8080...'</span>);</span><br><span class="line"><span class="comment">// 监听socket连接</span></span><br><span class="line">socket.listen(server).on(<span class="string">'connection'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">client</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 接收信息</span></span><br><span class="line">    client.on(<span class="string">'message'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">msg</span>) </span>&#123;</span><br><span class="line">        client.send(<span class="string">'hello：'</span> + msg);</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'data from client: ---&gt; '</span> + msg);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">// 断开处理</span></span><br><span class="line">    client.on(<span class="string">'disconnect'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'Client socket has closed.'</span>); </span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="四、postMessage"><a href="#四、postMessage" class="headerlink" title="四、postMessage"></a>四、postMessage</h3><blockquote>
+<p> 如果两个网页不同源，就无法拿到对方的DOM。典型的例子是iframe窗口和 window.open方法打开的窗口，它们与父窗口无法通信。HTML5为了解决这个问题，引入了一个全新的API：跨文档通信 API（Cross-document messaging）。这个API为window对象新增了一个 window.postMessage 方法，允许跨窗口通信，不论这两个窗口是否同源。</p>
+</blockquote>
+<p><strong>postMessage方法的第一个参数是具体的信息内容，第二个参数是接收消息的窗口的源（origin），即”协议 + 域名 + 端口”。</strong>也可以设为 <code>*</code>，表示不限制域名，向所有窗口发送。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//发送信息页面 </span></span><br><span class="line">&lt;html lang=<span class="string">"en"</span>&gt;  </span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta charset=<span class="string">"UTF-8"</span>&gt;  </span><br><span class="line">    &lt;title&gt;跨域请求&lt;<span class="regexp">/title&gt;   </span></span><br><span class="line"><span class="regexp">&lt;/</span>head&gt;  </span><br><span class="line">&lt;body&gt;</span><br><span class="line">    &lt;iframe src=<span class="string">"http://localhost:3000/users/reg"</span> id=<span class="string">"frm"</span>&gt;&lt;<span class="regexp">/iframe&gt;  </span></span><br><span class="line"><span class="regexp">    &lt;input type="button" value="OK" onclick="run()"&gt;  </span></span><br><span class="line"><span class="regexp">&lt;/</span>body&gt;  </span><br><span class="line">&lt;<span class="regexp">/html&gt;  </span></span><br><span class="line"><span class="regexp">&lt;script&gt;</span></span><br><span class="line"><span class="regexp">   function  run()&#123;          </span></span><br><span class="line"><span class="regexp">        var frm=document.getElementById("frm");  </span></span><br><span class="line"><span class="regexp">        frm.contentWindow.postMessage("跨域请求信息","http:/</span><span class="regexp">/localhost:3000");  </span></span><br><span class="line"><span class="regexp">   &#125;  </span></span><br><span class="line"><span class="regexp">&lt;/</span>script&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//接收信息页面 http://localhost:3000/message.html</span></span><br><span class="line"> <span class="built_in">window</span>.addEventListener(<span class="string">"message"</span>,<span class="function"><span class="keyword">function</span>(<span class="params">e</span>)</span>&#123;  </span><br><span class="line"><span class="comment">//通过监听message事件，可以监听对方发送的消息。</span></span><br><span class="line">  <span class="built_in">console</span>.log(e.data);  </span><br><span class="line">&#125;,<span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="杂"><a href="#杂" class="headerlink" title="杂"></a>杂</h3><ul>
+<li><p>IE9 发起跨域请求要使用 XDomainRequest, 因为 IE9 下的 XMLHttpRequest 不支持跨域调用.</p>
+</li>
+<li><p>XDomainRequest 只支持 GET 和 POST method, 并且没有 response status code, 可以说是不完善的 HTTP 异步请求对象.</p>
+</li>
+<li><p>XDomainRequest 不支持指定 responseType, 使用时建议请求和返回数据格式约定为 JSON.</p>
+</li>
+<li><p>whatwg-fetch1.0+ 不支持 IE9, 是因为 IE9 的状态码不符合 fetch 规范, 而 polyfill 的目标是 polyfill 规范, 而不是做兼容.</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>杂</category>
+      </categories>
+      <tags>
+        <tag>跨域</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>瓦片(Tile)地图原理</title>
+    <url>/blog/2020/06/12/%E7%93%A6%E7%89%87Tile%E5%9C%B0%E5%9B%BE%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h2 id="瓦片-Tile-地图原理与加载"><a href="#瓦片-Tile-地图原理与加载" class="headerlink" title="瓦片(Tile)地图原理与加载"></a>瓦片(Tile)地图原理与加载</h2><h3 id="1-什么是瓦片地图"><a href="#1-什么是瓦片地图" class="headerlink" title="1. 什么是瓦片地图"></a>1. 什么是瓦片地图</h3><p>​    我们在网上浏览地图比如常见的：高德、谷歌、Bing、腾讯地图、百度地图、OpenStreetMap。地图加载时是一个方块一个方块加载显示出来。这种地图加载方式就是将地图（就是张图片）按照详细程度等级制作成各个等级的瓦片（还是张图片），结构如下图。根据用户缩放情况 显示不同等级的地图图片。</p>
+<p><strong>一些基本特性：</strong></p>
+<ol>
+<li><p><a href="https://zh.wikipedia.org/wiki/%E5%8F%82%E8%80%83%E6%A4%AD%E7%90%83%E4%BD%93" target="_blank" rel="noopener">参考椭球</a>：WGS84</p>
+</li>
+<li><p>投影：<a href="https://zh.wikipedia.org/wiki/%E9%BA%A5%E5%8D%A1%E6%89%98%E6%8A%95%E5%BD%B1%E6%B3%95" target="_blank" rel="noopener">墨卡托投影</a>、<a href="https://en.wikipedia.org/wiki/Mercator_projection#Web_Mercator" target="_blank" rel="noopener">Web_Mercator</a></p>
+</li>
+<li><p>当经度范围在[-180,180]，投影为正方形时，纬度范围：[-85.05113, 85.05113]</p>
+</li>
+<li><p>图片大小：256*256</p>
+</li>
+<li><p>图片格式：jpg[有损压缩率高、不透明]   png[无损、透明]</p>
+</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE1.png" alt="瓦片原理图1"></p>
+<h3 id="2-为什么使用瓦片地图"><a href="#2-为什么使用瓦片地图" class="headerlink" title="2. 为什么使用瓦片地图"></a>2. 为什么使用瓦片地图</h3><p>​    1）<strong>瓦片地图缓存非常高效</strong>。如果你曾查看中央公园的地图而下载过曼哈顿的瓦片，当你需要显示泽西城的地图时，你的浏览器可以使用之前缓存的相同的瓦片，而不是重新再下载一次。</p>
+<p>​    2）<strong>瓦片地图可以渐进加载</strong>。即使当前地图的边缘部分还没有加载完成，也可以缩放移动到其他地方。</p>
+<p>​    3）<strong>瓦片地图简单易用</strong>。描述地图瓦片的坐标系统很简单，使得很容易在服务器、网络、桌面或移动设备上实现技术集成。</p>
+<p>​    4）<strong>传输效率高、减少服务器压力</strong>。由于地图内容会跟着用户缩放程度进行一定的简化和隐藏，这一切如果动态由服务器计算后返回，效率大大降低，而预先为地图分好固定等级，将地图作为图片存储在服务端，更据请求只返回特定的地图图片则简便高效很多。</p>
+<h3 id="3-瓦片地图怎么做出来的"><a href="#3-瓦片地图怎么做出来的" class="headerlink" title="3. 瓦片地图怎么做出来的"></a>3. 瓦片地图怎么做出来的</h3><p>​    通常找软件生成去吧。。。基本原理过程就是：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE2.png" alt="瓦片原理图2"></p>
+<p>​    <strong>第一点</strong>：地球是个近似球体。要转为平面的地图需要投影。或者直接使用正射影像当瓦片用咯。</p>
+<p>​    <strong>第二点</strong>：投影完后，就按照地图详细等级进行切分。最高级（level = 0）,需要的信息最少，最宏观，就是一张256*256像素图片，下一级（level = 1）精细一些，就是512*512像素，以此类推。最后就成了个金字塔的体系。</p>
+<p>​    <strong>第三点</strong>：每张图片都是同样大小的图片，通常会都切分为<strong>256*256</strong>大小的图片，这就是<strong>瓦片</strong>了。算一算就知道，（level = 0）一张瓦片，到（level = 1）四张瓦片……..</p>
+<h3 id="4-瓦片怎么加载到正确的位置的"><a href="#4-瓦片怎么加载到正确的位置的" class="headerlink" title="4. 瓦片怎么加载到正确的位置的"></a>4. 瓦片怎么加载到正确的位置的</h3><p>​    要在浏览器上把每个切片放到正确的位置，保证拼接正确，就要将每个瓦片进行<strong>编号</strong>，有了编号后就知道每个瓦片对应加载的位置，此处可以脑补拼图。下面先了解下编号的规则。</p>
+<blockquote>
+<p><strong>谷歌XYZ</strong>：Z表示缩放层级，Z=zoom；XY的原点在左上角，X从左向右，Y从上向下。</p>
+<p><strong>TMS</strong>：开源产品的标准，Z的定义与谷歌相同；XY的原点在左下角，X从左向右，Y从下向上。</p>
+<p><strong>QuadTree</strong>：微软Bing地图使用的编码规范，Z的定义与谷歌相同，同一层级的瓦片不用XY两个维度表示，而只用一个整数表示，该整数服从四叉树编码规则</p>
+<p><strong>百度XYZ</strong>：Z从1开始，在最高级就把地图分为四块瓦片；XY的原点在经度为0纬度位0的位置，X从左向右，Y从下向上。    </p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE3.png" alt="瓦片原理图3"></p>
+<p>​    编好了号，瓦片做好了，就是一堆文件夹里放着图片。直观点就是下图：</p>
+<p>​    文件夹名字表示级别： <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE4.png" alt="瓦片原理图4"></p>
+<p>​    点开21级文件夹，文件夹名表示x：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE5.png" alt="瓦片原理图5"></p>
+<p>​    再打开文件夹就是图片了,名字就是y：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE6.png" alt="瓦片原理图6"></p>
+<p>​    *.kml文件里面存了写坐标信息有需要可以读取，这里先不管它。</p>
+<h3 id="5-瓦片的加载方法"><a href="#5-瓦片的加载方法" class="headerlink" title="5.瓦片的加载方法"></a>5.瓦片的加载方法</h3><p>​    有了瓦片，再简单的说下加载瓦片地图的<strong>基本思路</strong>：</p>
+<p>​    1. 要根据用户缩放程度算出显示范围所对应的瓦片的<strong>x、y、z</strong>（leve）（也可以说是行列号）。</p>
+<p>​    2. 接下来就再对应的位置，获取并加载上对应的x、y、z的瓦片。</p>
+<p>​    3. 必要的一些缩放功能，平移等等基本的地图浏览操作。</p>
+<p>​    上面说的很简单，但是要自己实现的话还是很麻烦的对吧。所以上面这些，基本都有现成JS库帮我们去完成。而瓦片无特殊要求的话，去获取，高德、谷歌、OSM、腾讯等等都可以很方便。下面是简单的加载天地图瓦片地图服务的例子，使用的ArcGIS API for JavaScript，官方教程也很多可以看看。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> MyCustomTileLayer = BaseTileLayer.createSubclass(&#123;</span><br><span class="line">    <span class="comment">// properties of the custom tile layer</span></span><br><span class="line">    properties: &#123;</span><br><span class="line">        urlTemplate: <span class="literal">null</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// override getTileUrl()</span></span><br><span class="line">    <span class="comment">// generate the tile url for a given level, row and column</span></span><br><span class="line">    getTileUrl: <span class="function"><span class="keyword">function</span> (<span class="params">level, row, col</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.urlTemplate.replace(<span class="string">"&#123;z&#125;"</span>, level).replace(<span class="string">"&#123;x&#125;"</span>, col).replace(<span class="string">"&#123;y&#125;"</span>, row).replace(<span class="string">"&#123;tag&#125;"</span>, col % <span class="number">8</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">var</span> TDMap = <span class="keyword">new</span> MyCustomTileLayer(&#123;</span><br><span class="line">    urlTemplate: <span class="string">"http://t&#123;tag&#125;.tianditu.gov.cn/DataServer?T=vec_w&amp;x=&#123;x&#125;&amp;y=&#123;y&#125;&amp;l=&#123;z&#125;"</span>,</span><br><span class="line">    tint: <span class="string">"#71DE6E"</span>, <span class="comment">// blue color</span></span><br><span class="line">    title: <span class="string">"TD Map"</span>,</span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">var</span> myMap = <span class="keyword">new</span> <span class="built_in">Map</span>(&#123;</span><br><span class="line">    layers: [TDMap]</span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">var</span> view = <span class="keyword">new</span> SceneView(&#123;</span><br><span class="line">    container: <span class="string">"viewDiv"</span>,</span><br><span class="line">    map: myMap,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>不太明白的看看这个：</strong></p>
+<p>​     我们天地图官网上打开地图时候F12里找到的请求：参数就有x、y、l（leve），再看上面的代码getTileUrl函数，帮我们把算出来的三个参数替换到url中去请求到对应的瓦片，tag是天地图有好几个瓦片服务地址任意取一个数，暂时可以不管。</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE8.png" alt="瓦片原理图6"></p>
+<p>​    url搞定了剩下的就是造个layer造个map加到view中。</p>
+<h3 id="6-加载自定义的瓦片"><a href="#6-加载自定义的瓦片" class="headerlink" title="6. 加载自定义的瓦片"></a>6. 加载自定义的瓦片</h3><p>​    上面我们用的是天地图的瓦片，我们很多时候需要加载自己的做好的瓦片,现在我们以上面截图的那些做好的瓦片文件为例，写个属于自己的瓦片地图的服务：</p>
+<h5 id="这里用-NET-Web-API实现"><a href="#这里用-NET-Web-API实现" class="headerlink" title="这里用.NET Web API实现"></a>这里用.NET Web API实现</h5><p>其实思路简单：</p>
+<ol>
+<li><p>按照<code>x，y，z</code>去得到对应瓦片的文件路径，<code>x、y、z</code>是url里传过来的。</p>
+</li>
+<li><p>将获取到的图片返回</p>
+</li>
+</ol>
+<h5 id="Modles："><a href="#Modles：" class="headerlink" title="Modles："></a>Modles：</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public string getImage(string mt, string version, string x, string y, string z)</span><br><span class="line">&#123;</span><br><span class="line">    try</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F;由于采用的瓦片编号为TMS</span><br><span class="line">        &#x2F;&#x2F;而我们使用ArcGIS JS API来加载 其默认为Google瓦片编码规则</span><br><span class="line">        &#x2F;&#x2F;所以这里将y值进行简单换算</span><br><span class="line">        y &#x3D; (Math.Pow(2, Convert.ToInt32(z)) - Convert.ToInt32(y) - 1).ToString();</span><br><span class="line">        </span><br><span class="line">        &#x2F;&#x2F;取对应路径下的图片</span><br><span class="line">        string currentPath &#x3D; System.Web.Hosting.HostingEnvironment.MapPath(&quot;~&#x2F;&quot;) + @&quot;tiles&quot;;</span><br><span class="line">        if (File.Exists(currentPath + &quot;&#x2F;&quot; + mt + &quot;&#x2F;&quot; + version + &quot;&#x2F;&quot; + z + &quot;&#x2F;&quot; + x + &quot;&#x2F;&quot; + y + &quot;.png&quot;))</span><br><span class="line">        &#123;</span><br><span class="line">            imgpath &#x3D; currentPath + &quot;&#x2F;&quot; + mt + &quot;&#x2F;&quot; + version + &quot;&#x2F;&quot; + z + &quot;&#x2F;&quot; + x + &quot;&#x2F;&quot; + y + &quot;.png&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            imgpath &#x3D; currentPath + &quot;&#x2F;Northophoto.png&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        return imgpath;</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Exception ex)</span><br><span class="line">    &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Controller"><a href="#Controller" class="headerlink" title="Controller:"></a>Controller:</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class testController : ApiController</span><br><span class="line">    &#123;</span><br><span class="line">    [HttpGet]</span><br><span class="line">    &#x2F;&#x2F;主要就是xyz 其他自定义的参数，可以不用管</span><br><span class="line">    public HttpResponseMessage Foo(string mt, string version, string x, string y, string z)</span><br><span class="line">    &#123;</span><br><span class="line">        try</span><br><span class="line">        &#123;</span><br><span class="line">            TestClass modclass &#x3D; new TestClass();</span><br><span class="line">            var imgPath &#x3D; modclass.getImage(mt, version, x, y, z);</span><br><span class="line">            FileStream fs &#x3D; new FileStream(imgPath, FileMode.Open);</span><br><span class="line">            HttpResponseMessage resp &#x3D; new HttpResponseMessage(HttpStatusCode.OK);</span><br><span class="line">            resp.Content &#x3D; new StreamContent(fs);</span><br><span class="line">            resp.Content.Headers.ContentType &#x3D; new MediaTypeHeaderValue(&quot;image&#x2F;jpg&quot;);</span><br><span class="line">            return resp;</span><br><span class="line">        &#125;</span><br><span class="line">        catch (Exception)</span><br><span class="line">        &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    这样前端调用相应的URL并带上的相应的参数 <strong>具体xyz参数值由ArcGIS JS API得出</strong></p>
+<pre><code>&gt; ps：具体怎么算出来的看下一篇文章。</code></pre><p>​    下面我们看看简单的使用ArcGIS JS API加载瓦片的方法，和上面加载天地图差不多，但是参数使要根据我们上一步定义的参数来传递，具体也可以去看看Esri的官方API文档：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> MyCustomTileLayer = BaseTileLayer.createSubclass(&#123;</span><br><span class="line">    <span class="comment">// properties of the custom tile layer</span></span><br><span class="line">    properties: &#123;</span><br><span class="line">        urlTemplate: <span class="literal">null</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// override getTileUrl()</span></span><br><span class="line">    <span class="comment">// generate the tile url for a given level, row and column</span></span><br><span class="line">    getTileUrl: <span class="function"><span class="keyword">function</span> (<span class="params">level, row, col</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.urlTemplate.replace(<span class="string">"&#123;z&#125;"</span>, level).replace(<span class="string">"&#123;x&#125;"</span>, col).replace(<span class="string">"&#123;y&#125;"</span>, row).replace(<span class="string">"&#123;tag&#125;"</span>, col % <span class="number">8</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> Tile = <span class="keyword">new</span> MyCustomTileLayer(&#123;</span><br><span class="line">    urlTemplate: <span class="string">"http://localhost:62881/api/test?mt=测试&amp;version=20181210&amp;x=&#123;x&#125;&amp;y=&#123;y&#125;&amp;z=&#123;z&#125;"</span>,</span><br><span class="line">    title: <span class="string">"Tile"</span>,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>​    这样底图图层就创建出来了，接下来就可以直接使用：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%93%A6%E7%89%87%E5%8E%9F%E7%90%86%E5%9B%BE7.png" alt="瓦片原理图7"></p>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>原理</category>
+      </categories>
+      <tags>
+        <tag>瓦片地图</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Javascript读取Shapefile(转存)</title>
+    <url>/blog/2020/06/12/Javascript%E8%AF%BB%E5%8F%96Shapefile/</url>
+    <content><![CDATA[<h2 id="Javascript-读取-Shapefile-教程"><a href="#Javascript-读取-Shapefile-教程" class="headerlink" title="Javascript 读取 Shapefile 教程"></a>Javascript 读取 Shapefile 教程</h2><h4 id="一、Shapefile-简介"><a href="#一、Shapefile-简介" class="headerlink" title="一、Shapefile 简介"></a>一、Shapefile 简介</h4><p>​ Shapefile 是美国环境系统研究所公司（ESRI）开发的一种空间数据开放格式，属于一种矢量图形格式，它能够保存几何图形的位置及相关属性，实际上该种文件格式是由多个文件组成的，有三个必须的文件:<br>​ .shp— 图形格式，用于保存元素的几何实体。<br>​ .shx— 图形索引格式。几何体位置索引，记录每一个几何体在 shp 文件之中的位置，能够加快向前或向后搜索一个几何体的效率。<br>​ .dbf— 属性数据格式，以 dBase IV 的数据表格式存储每个几何形状的属性数据。</p>
+<h4 id="二、shp-文件"><a href="#二、shp-文件" class="headerlink" title="二、shp 文件"></a>二、shp 文件</h4><p>​ shp 文件存储了坐标位置信息，该文件由一个定长的文件头和一个或若干个变长的记录数据组成。每一条变长数据记录包含一个记录头和一些记录内容。主文件头包含 17 个字段，共 100 个字节，其中包含九个 4 字节（32 位有符号整数，int32）整数字段，紧接着是八个 8 字节（双精度浮点数）有符号浮点数字段。</p>
+<table>
+<thead>
+<tr>
+<th>字节</th>
+<th>类型</th>
+<th>字节序</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–3</td>
+<td>int32</td>
+<td>大端序</td>
+<td>文件编号 (永远是十六进制数 0x0000270a)</td>
+</tr>
+<tr>
+<td>4–23</td>
+<td>int32</td>
+<td>大端序</td>
+<td>五个没有被使用的 32 位整数</td>
+</tr>
+<tr>
+<td>24–27</td>
+<td>int32</td>
+<td>大端序</td>
+<td>文件长度，包括文件头。（用 16 位整数表示）</td>
+</tr>
+<tr>
+<td>28–31</td>
+<td>int32</td>
+<td>小端序</td>
+<td>版本</td>
+</tr>
+<tr>
+<td>32–35</td>
+<td>int32</td>
+<td>小端序</td>
+<td>图形类型（参见下面）</td>
+</tr>
+<tr>
+<td>36–67</td>
+<td>double</td>
+<td>小端序</td>
+<td>最小外接矩形(MBR)，也就是一个包含 shapefile 之中所有图形的矩形。以四个浮点数表示，分别是 X 坐标最小值，Y 坐标最小值,X 坐标最大值，Y 坐标最大值。</td>
+</tr>
+<tr>
+<td>68–83</td>
+<td>double</td>
+<td>小端序</td>
+<td>Z 坐标值的范围。以两个浮点数表示，分别是 Z 坐标的最小值与 Z 坐标的最大值。</td>
+</tr>
+<tr>
+<td>84–99</td>
+<td>double</td>
+<td>小端序</td>
+<td>M 坐标值的范围。以两个浮点数表示，分别是 M 坐标的最小值与 M 坐标的最大值。</td>
+</tr>
+</tbody></table>
+<p>​ 然后这个文件包含不定数目的变长数据记录，每个数据记录以一个 8 字节记录头开始：</p>
+<table>
+<thead>
+<tr>
+<th>字节</th>
+<th>类型</th>
+<th>字节序</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–3</td>
+<td>int32</td>
+<td>大端序</td>
+<td>记录编号 (从 1 开始)</td>
+</tr>
+<tr>
+<td>4–7</td>
+<td>int32</td>
+<td>大端序</td>
+<td>记录长度（以 16 位整数表示）</td>
+</tr>
+</tbody></table>
+<p>​ 在记录头的后面就是实际的记录：</p>
+<table>
+<thead>
+<tr>
+<th>字节</th>
+<th>类型</th>
+<th>字节序</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–3</td>
+<td>int32</td>
+<td>小端序</td>
+<td>图形类型（参见下面）</td>
+</tr>
+<tr>
+<td>4–</td>
+<td>-</td>
+<td>-</td>
+<td>图形内容</td>
+</tr>
+</tbody></table>
+<p>​ 变长记录的内容由图形的类型决定。Shapefile 支持以下的图形类型：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>图形类型</th>
+<th>字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>空图形</td>
+<td>无</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Point（点）</td>
+<td>X, Y</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Polyline（折线）</td>
+<td>（最小包围矩形）MBR，组成部分数目，点的数目，所有组成部分，所有点</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Polygon（多边形）</td>
+<td>（最小包围矩形）MBR，组成部分数目，点的数目，所有组成部分，所有点</td>
+</tr>
+<tr>
+<td>8</td>
+<td>MultiPoint（多点）</td>
+<td>（最小包围矩形）MBR，点的数目，所有点</td>
+</tr>
+<tr>
+<td>11</td>
+<td>PointZ（带 Z 与 M 坐标的点）</td>
+<td>X, Y, Z, M</td>
+</tr>
+<tr>
+<td>13</td>
+<td>PolylineZ（带 Z 或 M 坐标的折线）</td>
+<td><em>必须的</em>: （最小包围矩形）MBR，组成部分数目，点的数目，所有组成部分，所有点，Z 坐标范围, Z 坐标数组 <em>可选的</em>: M 坐标范围, M 坐标数组</td>
+</tr>
+<tr>
+<td>15</td>
+<td>PolygonZ（带 Z 或 M 坐标的多边形）</td>
+<td><em>必须的</em>: （最小包围矩形）MBR，组成部分数目，点的数目，所有组成部分，所有点，Z 坐标范围, Z 坐标数组 <em>可选的</em>: M 坐标范围, M 坐标数组</td>
+</tr>
+<tr>
+<td>18</td>
+<td>MultiPointZ（带 Z 或 M 坐标的多点）</td>
+<td><em>必须的</em>: （最小包围矩形）MBR，点的数目，所有点， Z 坐标范围, Z 坐标数组 <em>可选的</em>: M 坐标范围, M 坐标数组</td>
+</tr>
+<tr>
+<td>21</td>
+<td>PointM（带 M 坐标的点）</td>
+<td>X, Y, M</td>
+</tr>
+<tr>
+<td>23</td>
+<td>PolylineM（带 M 坐标的折线）</td>
+<td><em>必须的</em>: （最小包围矩形）MBR，组成部分数目，点的数目，所有组成部分，所有点 <em>可选的</em>: M 坐标范围, M 坐标数组</td>
+</tr>
+<tr>
+<td>25</td>
+<td>PolygonM（带 M 坐标的多边形）</td>
+<td><em>必须的</em>: （最小包围矩形）MBR，组成部分数目，点的数目，所有组成部分，所有点 <em>可选的</em>: M 坐标范围, M 坐标数组</td>
+</tr>
+<tr>
+<td>28</td>
+<td>MultiPointM（带 M 坐标的多点）</td>
+<td><em>必须的</em>: （最小包围矩形）MBR，点的数目，所有点 <em>可选的</em>: M 坐标范围, M 坐标数组</td>
+</tr>
+<tr>
+<td>31</td>
+<td>MultiPatch</td>
+<td><em>必须的</em>: （最小包围矩形）MBR，组成部分数目，点的数目，所有组成部分，所有点，Z 坐标范围, Z 坐标数组 <em>可选的</em>: M 坐标范围, M 坐标数组</td>
+</tr>
+</tbody></table>
+<h4 id="三、shp-文件读取"><a href="#三、shp-文件读取" class="headerlink" title="三、shp 文件读取"></a>三、shp 文件读取</h4><p>​ 首先新建 Html 的 input 元素和 canvas 元素，当 shp 文件上传成功后，通过<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/FileReader" target="_blank" rel="noopener">FileReader</a>读取 shp 文件，然后将对应的图形绘制到 Canvas 上。</p>
+<p>html 页面部分：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"file"</span> <span class="attr">id</span>=<span class="string">"file"</span> <span class="attr">onchange</span>=<span class="string">"readAsArrayBuffer()"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">canvas</span> <span class="attr">id</span>=<span class="string">"canvas"</span> <span class="attr">width</span>=<span class="string">"800"</span> <span class="attr">height</span>=<span class="string">"800"</span>&gt;</span><span class="tag">&lt;/<span class="name">canvas</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>parseHeader 函数解析 shp 的头文件<br>parseShape 行数解析 shp 文件的坐标信息<br>darwShape 函数将坐标信息绘制到 Canvas 上</p>
+<p>Javascript 代码:</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> file = <span class="built_in">document</span>.getElementById(<span class="string">"file"</span>);</span><br><span class="line"><span class="keyword">var</span> canvas = <span class="built_in">document</span>.getElementById(<span class="string">"canvas"</span>);</span><br><span class="line"><span class="keyword">var</span> context = canvas.getContext(<span class="string">"2d"</span>);</span><br><span class="line">context.strokeStyle = <span class="string">"rgba(0,0,0,1)"</span>;</span><br><span class="line"><span class="keyword">var</span> width = canvas.width;</span><br><span class="line"><span class="keyword">var</span> height = canvas.height;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">readAsArrayBuffer</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">  context.clearRect(<span class="number">0</span>, <span class="number">0</span>, width, height);</span><br><span class="line">  <span class="keyword">var</span> shp = file.files[<span class="number">0</span>];</span><br><span class="line">  <span class="keyword">var</span> reader = <span class="keyword">new</span> FileReader();</span><br><span class="line">  reader.readAsArrayBuffer(shp);</span><br><span class="line">  reader.onload = <span class="function"><span class="keyword">function</span> (<span class="params">f</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> dataView = <span class="keyword">new</span> <span class="built_in">DataView</span>(<span class="keyword">this</span>.result);</span><br><span class="line">    <span class="keyword">var</span> pos = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">var</span> header = parseHeader(dataView, pos);</span><br><span class="line">    pos = header.pos;</span><br><span class="line">    <span class="keyword">while</span> (pos &lt; header.byteLength) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> shape = parseShape(dataView, pos);</span><br><span class="line">        pos = shape.pos;</span><br><span class="line">        darwShape(header, shape);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(e);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">darwShape</span>(<span class="params">header, shape</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> xWidth = header.maxX - header.minX;</span><br><span class="line">  <span class="keyword">var</span> yHeight = header.maxY - header.minY;</span><br><span class="line">  <span class="keyword">var</span> i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">var</span> x, y;</span><br><span class="line">  context.fillStyle = <span class="string">"rgba(255,0,0,0.6)"</span>;</span><br><span class="line">  <span class="keyword">switch</span> (shape.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>: <span class="comment">// Point</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">11</span>: <span class="comment">// PointZ</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">21</span>: <span class="comment">// PointM</span></span><br><span class="line">      <span class="keyword">var</span> point = shape.coordinates;</span><br><span class="line">      <span class="keyword">if</span> (header.maxX == header.minX || header.maxY == header.minY) &#123;</span><br><span class="line">        context.fillRect(width / <span class="number">2</span>, height / <span class="number">2</span>, <span class="number">10</span>, <span class="number">10</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        x = ((point[<span class="number">0</span>] - header.minX) / xWidth) * width;</span><br><span class="line">        y = ((yHeight - (point[<span class="number">1</span>] - header.minY)) / yHeight) * height;</span><br><span class="line">        context.fillRect(x - <span class="number">5</span>, y - <span class="number">5</span>, <span class="number">10</span>, <span class="number">10</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">8</span>: <span class="comment">// MultiPoint</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">18</span>: <span class="comment">// MultiPointZ</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">28</span>: <span class="comment">// MultiPointM</span></span><br><span class="line">      <span class="keyword">var</span> points = shape.coordinates;</span><br><span class="line">      <span class="keyword">for</span> (; i &lt; points.length; i++) &#123;</span><br><span class="line">        x = ((points[i][<span class="number">0</span>] - header.minX) / xWidth) * width;</span><br><span class="line">        y = ((yHeight - (points[i][<span class="number">1</span>] - header.minY)) / yHeight) * height;</span><br><span class="line">        context.fillRect(x - <span class="number">5</span>, y - <span class="number">5</span>, <span class="number">10</span>, <span class="number">10</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>: <span class="comment">// Polyline</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">13</span>: <span class="comment">// PolylineZ</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">23</span>: <span class="comment">// PolylineM</span></span><br><span class="line">      <span class="keyword">var</span> paths = shape.coordinates;</span><br><span class="line">      <span class="keyword">for</span> (; i &lt; paths.length; i++) &#123;</span><br><span class="line">        context.beginPath();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">var</span> j = <span class="number">0</span>; j &lt; paths[i].length; j++) &#123;</span><br><span class="line">          x = ((paths[i][j][<span class="number">0</span>] - header.minX) / xWidth) * width;</span><br><span class="line">          y = ((yHeight - (paths[i][j][<span class="number">1</span>] - header.minY)) / yHeight) * height;</span><br><span class="line">          <span class="keyword">if</span> (j == <span class="number">0</span>) &#123;</span><br><span class="line">            context.moveTo(x, y);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            context.lineTo(x, y);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        context.stroke();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">5</span>: <span class="comment">// Polygon</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">15</span>: <span class="comment">// PolygonZ</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">25</span>: <span class="comment">// PolygonM</span></span><br><span class="line">      <span class="keyword">var</span> rings = shape.coordinates.slice(<span class="number">0</span>);</span><br><span class="line">      <span class="comment">// Judging that the previous polygon has been drawed</span></span><br><span class="line">      <span class="keyword">for</span> (; i &lt; rings.length; i++) &#123;</span><br><span class="line">        <span class="keyword">var</span> clockwise = isClockwise(rings[i]);</span><br><span class="line">        <span class="keyword">if</span> (!clockwise) &#123;</span><br><span class="line">          <span class="keyword">var</span> gCenter = calcGravityCenter(rings[i]);</span><br><span class="line">          x = ((gCenter[<span class="number">0</span>] - header.minX) / xWidth) * width;</span><br><span class="line">          y = ((yHeight - (gCenter[<span class="number">1</span>] - header.minY)) / yHeight) * height;</span><br><span class="line">          <span class="keyword">var</span> pickData = context.getImageData(x, y, <span class="number">1</span>, <span class="number">1</span>).data;</span><br><span class="line">          <span class="keyword">if</span> (</span><br><span class="line">            pickData[<span class="number">0</span>] != <span class="number">0</span> ||</span><br><span class="line">            pickData[<span class="number">1</span>] != <span class="number">0</span> ||</span><br><span class="line">            pickData[<span class="number">2</span>] != <span class="number">0</span> ||</span><br><span class="line">            pickData[<span class="number">3</span>] != <span class="number">0</span></span><br><span class="line">          ) &#123;</span><br><span class="line">            rings.splice(i, <span class="number">1</span>);</span><br><span class="line">            i--;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      i = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (; i &lt; rings.length; i++) &#123;</span><br><span class="line">        <span class="keyword">var</span> clockwise = isClockwise(rings[i]);</span><br><span class="line">        <span class="keyword">if</span> (clockwise) &#123;</span><br><span class="line">          context.beginPath();</span><br><span class="line">          <span class="keyword">for</span> (<span class="keyword">var</span> j = <span class="number">0</span>; j &lt; rings[i].length; j++) &#123;</span><br><span class="line">            x = ((rings[i][j][<span class="number">0</span>] - header.minX) / xWidth) * width;</span><br><span class="line">            y = ((yHeight - (rings[i][j][<span class="number">1</span>] - header.minY)) / yHeight) * height;</span><br><span class="line">            <span class="keyword">if</span> (j == <span class="number">0</span>) &#123;</span><br><span class="line">              context.moveTo(x, y);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              context.lineTo(x, y);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          context.closePath();</span><br><span class="line">          context.stroke();</span><br><span class="line">          context.fill();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      context.globalCompositeOperation = <span class="string">"destination-out"</span>;</span><br><span class="line">      context.fillStyle = <span class="string">"rgba(255,255,255,1)"</span>;</span><br><span class="line">      i = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (; i &lt; rings.length; i++) &#123;</span><br><span class="line">        <span class="keyword">var</span> clockwise = isClockwise(rings[i]);</span><br><span class="line">        <span class="keyword">if</span> (!clockwise) &#123;</span><br><span class="line">          context.beginPath();</span><br><span class="line">          <span class="keyword">for</span> (<span class="keyword">var</span> j = <span class="number">0</span>; j &lt; rings[i].length; j++) &#123;</span><br><span class="line">            x = ((rings[i][j][<span class="number">0</span>] - header.minX) / xWidth) * width;</span><br><span class="line">            y = ((yHeight - (rings[i][j][<span class="number">1</span>] - header.minY)) / yHeight) * height;</span><br><span class="line">            <span class="keyword">if</span> (j == <span class="number">0</span>) &#123;</span><br><span class="line">              context.moveTo(x, y);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              context.lineTo(x, y);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          context.closePath();</span><br><span class="line">          context.stroke();</span><br><span class="line">          context.fill();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      context.globalCompositeOperation = <span class="string">"source-over"</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isClockwise</span>(<span class="params">ring</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (ring.length &lt; <span class="number">3</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">var</span> i = <span class="number">0</span>,</span><br><span class="line">    j = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">var</span> area = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (; i &lt; ring.length; i++) &#123;</span><br><span class="line">    j = (i + <span class="number">1</span>) % ring.length;</span><br><span class="line">    area += ring[i][<span class="number">0</span>] * ring[j][<span class="number">1</span>];</span><br><span class="line">    area -= ring[j][<span class="number">0</span>] * ring[i][<span class="number">1</span>];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> area &lt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">calcGravityCenter</span>(<span class="params">ring</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> xmin = <span class="built_in">Number</span>.MAX_VALUE;</span><br><span class="line">  <span class="keyword">var</span> ymin = <span class="built_in">Number</span>.MAX_VALUE;</span><br><span class="line">  <span class="keyword">var</span> i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (; i &lt; ring.length; i++) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ring[i][<span class="number">0</span>] &lt; xmin) &#123;</span><br><span class="line">      xmin = ring[i][<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (ring[i][<span class="number">1</span>] &lt; ymin) &#123;</span><br><span class="line">      ymin = ring[i][<span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">var</span> momentX = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">var</span> momentY = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">var</span> weight = <span class="number">0</span>;</span><br><span class="line">  i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (; i &lt; ring.length; i++) &#123;</span><br><span class="line">    <span class="keyword">var</span> p1 = ring[i];</span><br><span class="line">    <span class="keyword">var</span> p2;</span><br><span class="line">    <span class="keyword">if</span> (i == ring.length - <span class="number">1</span>) &#123;</span><br><span class="line">      p2 = ring[<span class="number">0</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      p2 = ring[i + <span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> dWeight =</span><br><span class="line">      (p1[<span class="number">0</span>] - xmin) * (p2[<span class="number">1</span>] - p1[<span class="number">1</span>]) -</span><br><span class="line">      ((p1[<span class="number">0</span>] - xmin) * (ymin - p1[<span class="number">1</span>])) / <span class="number">2</span> -</span><br><span class="line">      ((p2[<span class="number">0</span>] - xmin) * (p2[<span class="number">1</span>] - ymin)) / <span class="number">2</span> -</span><br><span class="line">      ((p1[<span class="number">0</span>] - p2[<span class="number">0</span>]) * (p2[<span class="number">1</span>] - p1[<span class="number">1</span>])) / <span class="number">2</span>;</span><br><span class="line">    weight += dWeight;</span><br><span class="line">    <span class="keyword">var</span> pTmp = [(p1[<span class="number">0</span>] + p2[<span class="number">0</span>]) / <span class="number">2</span>, (p1[<span class="number">1</span>] + p2[<span class="number">1</span>]) / <span class="number">2</span>];</span><br><span class="line">    <span class="keyword">var</span> gravityX = xmin + ((pTmp[<span class="number">0</span>] - xmin) * <span class="number">2</span>) / <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">var</span> gravityY = ymin + ((pTmp[<span class="number">1</span>] - ymin) * <span class="number">2</span>) / <span class="number">3</span>;</span><br><span class="line">    momentX += gravityX * dWeight;</span><br><span class="line">    momentY += gravityY * dWeight;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> [momentX / weight, momentY / weight];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * read the shp header info .</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param </span>dataView The DataView containing the main shapefile.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param </span>pos The start position of DataView.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">parseHeader</span>(<span class="params">dataView, pos</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> header = &#123;&#125;;</span><br><span class="line">  header.fileCode = dataView.getInt32(pos, <span class="literal">false</span>);</span><br><span class="line">  <span class="keyword">if</span> (header.fileCode != <span class="number">0x0000270a</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">"Unknown file code: "</span> + header.fileCode);</span><br><span class="line">  &#125;</span><br><span class="line">  pos += <span class="number">4</span>;</span><br><span class="line">  pos += <span class="number">5</span> * <span class="number">4</span>; <span class="comment">//unused</span></span><br><span class="line">  <span class="keyword">var</span> wordLength = dataView.getInt32(pos, <span class="literal">false</span>); <span class="comment">//bigEndian  the total length of the file in 16-bit words</span></span><br><span class="line">  header.byteLength = wordLength * <span class="number">2</span>;</span><br><span class="line">  pos += <span class="number">4</span>;</span><br><span class="line">  header.version = dataView.getInt32(pos, <span class="literal">true</span>); <span class="comment">//littleEndian</span></span><br><span class="line">  pos += <span class="number">4</span>;</span><br><span class="line">  header.shapeType = dataView.getInt32(pos, <span class="literal">true</span>);</span><br><span class="line">  pos += <span class="number">4</span>;</span><br><span class="line">  header.minX = dataView.getFloat64(pos, <span class="literal">true</span>);</span><br><span class="line">  header.minY = dataView.getFloat64(pos + <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">  header.maxX = dataView.getFloat64(pos + <span class="number">16</span>, <span class="literal">true</span>);</span><br><span class="line">  header.maxY = dataView.getFloat64(pos + <span class="number">24</span>, <span class="literal">true</span>);</span><br><span class="line">  header.minZ = dataView.getFloat64(pos + <span class="number">32</span>, <span class="literal">true</span>);</span><br><span class="line">  header.maxZ = dataView.getFloat64(pos + <span class="number">40</span>, <span class="literal">true</span>);</span><br><span class="line">  header.minM = dataView.getFloat64(pos + <span class="number">48</span>, <span class="literal">true</span>);</span><br><span class="line">  header.maxM = dataView.getFloat64(pos + <span class="number">56</span>, <span class="literal">true</span>);</span><br><span class="line">  pos += <span class="number">8</span> * <span class="number">8</span>;</span><br><span class="line">  header.pos = pos;</span><br><span class="line">  <span class="keyword">return</span> header;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * read the shp content.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param </span>dataView The DataView containing the main shapefile.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param </span>pos The start position of DataView.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">parseShape</span>(<span class="params">dataView, pos</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> shape = &#123;&#125;;</span><br><span class="line">  shape.number = dataView.getInt32(pos, <span class="literal">false</span>); <span class="comment">//bigEndian</span></span><br><span class="line">  pos += <span class="number">4</span>;</span><br><span class="line">  shape.length = dataView.getInt32(pos, <span class="literal">false</span>) * <span class="number">2</span>; <span class="comment">//bigEndian</span></span><br><span class="line">  pos += <span class="number">4</span>;</span><br><span class="line">  shape.type = dataView.getInt32(pos, <span class="literal">true</span>); <span class="comment">//littleEndian</span></span><br><span class="line">  pos += <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">var</span> coordinates = [];</span><br><span class="line">  <span class="keyword">switch</span> (shape.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>: <span class="comment">// Null</span></span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>: <span class="comment">// Point (x,y)</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">11</span>: <span class="comment">// PointZ (X, Y, Z, M)</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">21</span>: <span class="comment">// PointM (X, Y, M)</span></span><br><span class="line">      <span class="keyword">var</span> point = [</span><br><span class="line">        dataView.getFloat64(pos, <span class="literal">true</span>),</span><br><span class="line">        dataView.getFloat64(pos + <span class="number">8</span>, <span class="literal">true</span>),</span><br><span class="line">      ];</span><br><span class="line">      pos += <span class="number">16</span>;</span><br><span class="line">      coordinates = point;</span><br><span class="line">      <span class="keyword">if</span> (shape.type == <span class="number">11</span>) &#123;</span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//read z value float64</span></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//read m value float64</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (shape.type == <span class="number">21</span>) &#123;</span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//read m value float64</span></span><br><span class="line">      &#125;</span><br><span class="line">      shape.coordinates = coordinates;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">8</span>: <span class="comment">// MultiPoint (MBR, pointCount, points)</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">18</span>: <span class="comment">// MultiPointZ</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">28</span>: <span class="comment">// MultiPointM</span></span><br><span class="line">      <span class="keyword">var</span> minX = dataView.getFloat64(pos, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> minY = dataView.getFloat64(pos + <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> maxX = dataView.getFloat64(pos + <span class="number">16</span>, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> maxY = dataView.getFloat64(pos + <span class="number">24</span>, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> pointCount = dataView.getInt32(pos + <span class="number">32</span>, <span class="literal">true</span>); <span class="comment">//x y</span></span><br><span class="line">      pos += <span class="number">36</span>; <span class="comment">//8*4+4</span></span><br><span class="line">      <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; pointCount; i++) &#123;</span><br><span class="line">        <span class="keyword">var</span> point = [</span><br><span class="line">          dataView.getFloat64(pos, <span class="literal">true</span>),</span><br><span class="line">          dataView.getFloat64(pos + <span class="number">8</span>, <span class="literal">true</span>),</span><br><span class="line">        ];</span><br><span class="line">        pos += <span class="number">16</span>;</span><br><span class="line">        coordinates.push(point);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (shape.type == <span class="number">18</span>) &#123;</span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//zmin</span></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//zmax</span></span><br><span class="line">        pos += pointCount * <span class="number">8</span>; <span class="comment">//read z values float64</span></span><br><span class="line"></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmin</span></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmax</span></span><br><span class="line">        pos += pointCount * <span class="number">8</span>; <span class="comment">//read m values float64</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (shape.type == <span class="number">28</span>) &#123;</span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmin</span></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmax</span></span><br><span class="line">        pos += pointCount * <span class="number">8</span>; <span class="comment">//read m values float64</span></span><br><span class="line">      &#125;</span><br><span class="line">      shape.extent = &#123;</span><br><span class="line">        minX: minX,</span><br><span class="line">        minY: minY,</span><br><span class="line">        maxX: maxX,</span><br><span class="line">        maxY: maxY,</span><br><span class="line">      &#125;;</span><br><span class="line">      shape.coordinates = coordinates;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>: <span class="comment">// Polyline</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">13</span>: <span class="comment">// PolylineZ</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">23</span>: <span class="comment">// PolylineM</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">5</span>: <span class="comment">// Polygon</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">15</span>: <span class="comment">// PolygonZ</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">25</span>: <span class="comment">// PolygonM</span></span><br><span class="line">      <span class="keyword">var</span> minX = dataView.getFloat64(pos, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> minY = dataView.getFloat64(pos + <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> maxX = dataView.getFloat64(pos + <span class="number">16</span>, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> maxY = dataView.getFloat64(pos + <span class="number">24</span>, <span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">var</span> parts = <span class="keyword">new</span> <span class="built_in">Int32Array</span>(dataView.getInt32(pos + <span class="number">32</span>, <span class="literal">true</span>));</span><br><span class="line">      <span class="keyword">var</span> pointCount = dataView.getInt32(pos + <span class="number">36</span>, <span class="literal">true</span>); <span class="comment">//x y</span></span><br><span class="line">      pos += <span class="number">40</span>; <span class="comment">//8*4+4+4</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; parts.length; i++) &#123;</span><br><span class="line">        parts[i] = dataView.getInt32(pos, <span class="literal">true</span>);</span><br><span class="line">        pos += <span class="number">4</span>;</span><br><span class="line">        coordinates.push([]);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">var</span> p = <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; pointCount; i++) &#123;</span><br><span class="line">        <span class="keyword">var</span> point = [</span><br><span class="line">          dataView.getFloat64(pos, <span class="literal">true</span>),</span><br><span class="line">          dataView.getFloat64(pos + <span class="number">8</span>, <span class="literal">true</span>),</span><br><span class="line">        ];</span><br><span class="line">        pos += <span class="number">16</span>;</span><br><span class="line">        <span class="keyword">if</span> (p &gt;= parts.length) &#123;</span><br><span class="line">          coordinates[p - <span class="number">1</span>].push(point);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (i &lt; parts[p]) &#123;</span><br><span class="line">            coordinates[p - <span class="number">1</span>].push(point);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            p++;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (shape.type == <span class="number">15</span> || shape.type == <span class="number">13</span>) &#123;</span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//zmin</span></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//zmax</span></span><br><span class="line">        pos += pointCount * <span class="number">8</span>; <span class="comment">//read z values float64</span></span><br><span class="line"></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmin</span></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmax</span></span><br><span class="line">        pos += pointCount * <span class="number">8</span>; <span class="comment">//read m values float64</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (shape.type == <span class="number">25</span> || shape.type == <span class="number">23</span>) &#123;</span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmin</span></span><br><span class="line">        pos += <span class="number">8</span>; <span class="comment">//mmax</span></span><br><span class="line">        pos += pointCount * <span class="number">8</span>; <span class="comment">//read m values float64</span></span><br><span class="line">      &#125;</span><br><span class="line">      shape.extent = &#123;</span><br><span class="line">        minX: minX,</span><br><span class="line">        minY: minY,</span><br><span class="line">        maxX: maxX,</span><br><span class="line">        maxY: maxY,</span><br><span class="line">      &#125;;</span><br><span class="line">      shape.coordinates = coordinates;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">31</span>: <span class="comment">// MultiPatch</span></span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">"Shape type not supported: "</span> + shape.type);</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">"Unknown shape type at "</span> + (pos - <span class="number">4</span>) + <span class="string">": "</span> + shape.type);</span><br><span class="line">  &#125;</span><br><span class="line">  shape.pos = pos;</span><br><span class="line">  <span class="keyword">return</span> shape;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="四、结果"><a href="#四、结果" class="headerlink" title="四、结果"></a>四、结果</h4><p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/JS%E5%8A%A0%E8%BD%BDshp.jpg" alt="JS加载shp"></p>
+<h4 id="资料"><a href="#资料" class="headerlink" title="资料"></a>资料</h4><p><a href="https://www.esri.com/library/whitepapers/pdfs/shapefile.pdf" target="_blank" rel="noopener">shapefile 白皮书</a></p>
+]]></content>
+      <categories>
+        <category>GIS</category>
+        <category>原理</category>
+      </categories>
+      <tags>
+        <tag>代码</tag>
+      </tags>
+  </entry>
+</search>

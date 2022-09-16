@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="google-site-verification" content="5xoyo3HQ2-hM-1X3qmzMwjdHCjaieR_x651Un5NYCbY" />
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/uploads/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/uploads/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/uploads/favicon-16x16.png">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"xcsf.github.io","root":"/blog/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="一、相关概念大地坐标系（B, L, H) (纬度、经度、高度):B为过坐标点椭球面的法线与赤道面交角，L为过坐标点的子午线与起始子午线的夹角，H为坐标点沿法线到椭球面的距离。 空间直角坐标(X, Y, Z):Z轴与旋转椭球的短轴重合，向北为正，X轴与赤道面和首子午面的交线重合，向东为正。Y轴与XZ平面垂直构成右手系。 参心坐标系： 参考椭球的几何中心为原点的大地坐标系。通常分为：参心空间直角坐标系">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WGS84ToSZ坐标变换方法">
+<meta property="og:url" content="https://xcsf.github.io/blog/2020/06/12/WGS84ToSZ%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="xcsf&#39;s Blog">
+<meta property="og:description" content="一、相关概念大地坐标系（B, L, H) (纬度、经度、高度):B为过坐标点椭球面的法线与赤道面交角，L为过坐标点的子午线与起始子午线的夹角，H为坐标点沿法线到椭球面的距离。 空间直角坐标(X, Y, Z):Z轴与旋转椭球的短轴重合，向北为正，X轴与赤道面和首子午面的交线重合，向东为正。Y轴与XZ平面垂直构成右手系。 参心坐标系： 参考椭球的几何中心为原点的大地坐标系。通常分为：参心空间直角坐标系">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%95%BF%E5%8D%8A%E8%BD%B4.gif">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E6%89%81%E7%8E%87.gif">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%AD%E5%8D%8A%E8%BD%B4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%AC%AC%E4%B8%80%E5%81%8F%E5%BF%83%E7%8E%87.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%AC%AC%E4%BA%8C%E5%81%8F%E5%BF%83%E7%8E%87.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E6%9B%B2%E7%8E%87%E5%8D%8A%E5%BE%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/BLH2XYX.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/B%E5%88%9D%E5%80%BC.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH2.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97x.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97y.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97%E5%8F%82%E6%95%B01.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97%E5%8F%82%E6%95%B02.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XY2%E7%8B%AC%E7%AB%8B.png">
+<meta property="article:published_time" content="2020-06-12T18:35:58.000Z">
+<meta property="article:modified_time" content="2022-09-16T15:07:31.920Z">
+<meta property="article:author" content="xcsf">
+<meta property="article:tag" content="坐标">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%95%BF%E5%8D%8A%E8%BD%B4.gif">
+
+<link rel="canonical" href="https://xcsf.github.io/blog/2020/06/12/WGS84ToSZ%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E6%96%B9%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>WGS84ToSZ坐标变换方法 | xcsf's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">xcsf's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">noooooooooooob</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">25</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/xcsf" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://xcsf.github.io/blog/2020/06/12/WGS84ToSZ%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/uploads/43439835.png">
+      <meta itemprop="name" content="xcsf">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="xcsf's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          WGS84ToSZ坐标变换方法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-12 18:35:58" itemprop="dateCreated datePublished" datetime="2020-06-12T18:35:58+00:00">2020-06-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-09-16 15:07:31" itemprop="dateModified" datetime="2022-09-16T15:07:31+00:00">2022-09-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/GIS/" itemprop="url" rel="index"><span itemprop="name">GIS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/GIS/%E5%9D%90%E6%A0%87/" itemprop="url" rel="index"><span itemprop="name">坐标</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="一、相关概念"><a href="#一、相关概念" class="headerlink" title="一、相关概念"></a>一、相关概念</h3><p>大地坐标系（B, L, H) (纬度、经度、高度):B为过坐标点椭球面的法线与赤道面交角，L为过坐标点的子午线与起始子午线的夹角，H为坐标点沿法线到椭球面的距离。</p>
+<p>空间直角坐标(X, Y, Z):Z轴与旋转椭球的短轴重合，向北为正，X轴与赤道面和首子午面的交线重合，向东为正。Y轴与XZ平面垂直构成右手系。</p>
+<p>参心坐标系：</p>
+<p>参考椭球的几何中心为原点的大地坐标系。通常分为：参心空间直角坐标系（以x，y，z为其坐标元素）和参心大地坐标系（以B，L，H为其坐标元素）。</p>
+<p>地心坐标系：</p>
+<p>以地球质心(总椭球的几何中心)为原点的大地坐标系。通常分为地心空间直角坐标系(以x，y，z为其坐标元素)和地心大地坐标系(以B，L，H为其坐标元素)。</p>
+<p>椭球长半轴:<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%95%BF%E5%8D%8A%E8%BD%B4.gif" alt=""></p>
+<p>椭球扁率:<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E6%89%81%E7%8E%87.gif" alt=""></p>
+<p>椭球短半轴：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%9F%AD%E5%8D%8A%E8%BD%B4.png" alt=""></p>
+<p>椭球第一偏心率 ：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%AC%AC%E4%B8%80%E5%81%8F%E5%BF%83%E7%8E%87.png" alt=""></p>
+<p>椭球第二偏心率 ：<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E7%AC%AC%E4%BA%8C%E5%81%8F%E5%BF%83%E7%8E%87.png" alt=""></p>
+<p>卯酉圈曲率半径N：子午圈曲率半径M：</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E6%9B%B2%E7%8E%87%E5%8D%8A%E5%BE%84.png" alt=""></p>
+<p>补充：</p>
+<h3 id="二、转换方法"><a href="#二、转换方法" class="headerlink" title="二、转换方法"></a>二、转换方法</h3><h5 id="1-已知WGS–84大地坐标（BLH）-单位：度-分秒"><a href="#1-已知WGS–84大地坐标（BLH）-单位：度-分秒" class="headerlink" title="1.已知WGS–84大地坐标（BLH）(单位：度.分秒)"></a>1.已知WGS–84大地坐标（BLH）(单位：度.分秒)</h5><p>1）BLH》》十进制度》》弧度制</p>
+<p>​    可参考EXCEL中方法：</p>
+<p>​    RADIANS(25*B/9-2*INT(B)/3-INT(100*B)/90)</p>
+<p>2）转为北京54空间直角坐标系(克拉索夫斯基椭球)(BLH-&gt;XYZ)</p>
+<p>​    参考公式：</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/BLH2XYX.jpg" alt="BLH2XYX"></p>
+<p>​    PS:这里WGS84为地心坐标系而北京54为参心坐标系，（<strong>个人认为因为他们空间直角坐标系的轴方向一致，所以此处只需要添加XYZ的坐标偏移参数无需其他是三个旋转参数以及一个尺度参数</strong>），计算完后需要给XYZ加上常量，具体数值如下:</p>
+<p>​    X:-22,Y:+188,Z+30.5</p>
+<p>3)北京54的空间直角坐标系转换为其大地坐标系（ XYZ → BLH ）</p>
+<p>​    参考方法:</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH.jpg" alt="XYZ2BLH"></p>
+<p>​    求解方法：</p>
+<p>​    1.迭代法：</p>
+<p>​    取B初值为:<img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/B%E5%88%9D%E5%80%BC.jpg" alt=""></p>
+<p>​    C#代码实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;输入XYZ</span><br><span class="line">double X &#x3D; -2368953, Y &#x3D; 5382025, Z &#x3D; 2462584;</span><br><span class="line">&#x2F;&#x2F;相关参数</span><br><span class="line">double a, N, W, e1, r, sinB;</span><br><span class="line">double B1, B0, H1, H0, B, L, H;</span><br><span class="line">a &#x3D; 6378245;</span><br><span class="line">e1 &#x3D; 0.006693421622966;</span><br><span class="line">r &#x3D; X * X + Y * Y;</span><br><span class="line">L &#x3D; Math.Atan(Y &#x2F; X) + Math.PI;</span><br><span class="line">B0 &#x3D; Math.Atan(Z &#x2F; Math.Sqrt(r));</span><br><span class="line">sinB &#x3D; Math.Sin(B0);</span><br><span class="line">W &#x3D; Math.Sqrt(1 - e1 * sinB * sinB);</span><br><span class="line">N &#x3D; a &#x2F; W;</span><br><span class="line">H0 &#x3D; Z &#x2F; sinB - N * (1 - e1);</span><br><span class="line">int maxIter &#x3D; 100;</span><br><span class="line">int iter &#x3D; 0;</span><br><span class="line">while (true)</span><br><span class="line">&#123;</span><br><span class="line">    iter++;</span><br><span class="line">    B1 &#x3D; Math.Atan2(Z * (N + H0), Math.Sqrt(r) * (N * (1 - e1) + H0));</span><br><span class="line">    sinB &#x3D; Math.Sin(B1);</span><br><span class="line">    W &#x3D; Math.Sqrt(1 - e1 * sinB * sinB);</span><br><span class="line">    N &#x3D; a &#x2F; W;</span><br><span class="line">    H1 &#x3D; Z &#x2F; sinB - N * (1 - e1);</span><br><span class="line">    if ((Math.Abs(B1 - B0) &lt; Math.Pow(10, -15) &amp;&amp; Math.Abs(H1 - H0) &lt; Math.Pow(10, -15)) || iter &gt; maxIter)</span><br><span class="line">    &#123;</span><br><span class="line">        break;</span><br><span class="line">    &#125;</span><br><span class="line">    B0 &#x3D; B1;</span><br><span class="line">    H0 &#x3D; H1;</span><br><span class="line">&#125;</span><br><span class="line">B &#x3D; B1;</span><br><span class="line">H &#x3D; H1;</span><br></pre></td></tr></table></figure>
+
+<p>​    2.直接求解</p>
+<p>​    参考公式：</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XYZ2BLH2.jpg" alt="XYZ2BLH2"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;输入XYZ</span><br><span class="line">double X &#x3D; -2368953, Y &#x3D; 5382025, Z &#x3D; 2462584;</span><br><span class="line">double a &#x3D; 6378245, b &#x3D; 6356863.0188;</span><br><span class="line">double N, W, sb;</span><br><span class="line">double e2 &#x3D; 0.00673852540614652;</span><br><span class="line">double e1 &#x3D; 0.00669342161454287;</span><br><span class="line">double r &#x3D; Math.Sqrt(X * X + Y * Y);</span><br><span class="line">double alpha &#x3D; Math.Atan(Z * a &#x2F; (r * b));</span><br><span class="line">double cosal &#x3D; Math.Cos(alpha);</span><br><span class="line">double sinal &#x3D; Math.Sin(alpha);</span><br><span class="line">double L &#x3D; Math.Atan(Y &#x2F; X) + Math.PI;</span><br><span class="line">double B &#x3D; Math.Atan((Z + e2 * b * sinal * sinal * sinal) &#x2F; (r - e1 * a * cosal * cosal * cosal));</span><br><span class="line">sb &#x3D; Math.Sin(B);</span><br><span class="line">W &#x3D; Math.Sqrt(1 - e1 * sb * sb);</span><br><span class="line">N &#x3D; a &#x2F; W;</span><br><span class="line">double H &#x3D; r &#x2F; Math.Cos(B) - N;</span><br><span class="line">&#x2F;&#x2F;结果为BLH</span><br></pre></td></tr></table></figure>
+
+<p>​    3.EXCEL中：</p>
+<p>​    暂过~</p>
+<p>4）结果BLH为弧度》》转为度分秒</p>
+<p>​    参考EXCEL中公式：</p>
+<p>​    9*B*180/PI()/25+2*INT(B*180/PI())/5+INT(60*B*180/PI())/250</p>
+<p>​    PS：后面的计算，BLH依然用弧度制，这里只是提供一个方法</p>
+<p>5)使用高斯投影中央经线为114度</p>
+<p>​    参考公式：</p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97x.png" alt="高斯正算x"></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97y.png" alt="高斯正算y"></p>
+<p>​    <img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97%E5%8F%82%E6%95%B01.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/%E9%AB%98%E6%96%AF%E6%AD%A3%E7%AE%97%E5%8F%82%E6%95%B02.png" alt="高斯正算参数2"></p>
+<p>​    C#代码实现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;输入椭球参数及坐标点</span><br><span class="line">double a &#x3D; 6378245, f &#x3D; 0.00335232986925913;</span><br><span class="line">&#x2F;&#x2F;L0为中央子午线弧度制 这里为114度</span><br><span class="line">double B &#x3D; 0.398992580521256, L &#x3D; 1.98543736115197, L0 &#x3D; 1.9896753472735356;</span><br><span class="line">double x, y;</span><br><span class="line"></span><br><span class="line">double b, c, e1, e2; &#x2F;&#x2F;短半轴，极点处的子午线曲率半径，第一偏心率，第二偏心率</span><br><span class="line">double l, W, N, M, daihao;&#x2F;&#x2F;W为常用辅助函数，M为子午圈曲率半径，N为卯酉圈曲率半径</span><br><span class="line">double X;&#x2F;&#x2F;子午线弧长，高斯投影的坐标</span><br><span class="line">double ruo, ita, sb, cb, t;</span><br><span class="line">double[] m &#x3D; new double[5];</span><br><span class="line">double[] n &#x3D; new double[5];</span><br><span class="line">b &#x3D; a * (1 - f);</span><br><span class="line">e1 &#x3D; Math.Sqrt(a * a - b * b) &#x2F; a;</span><br><span class="line">e2 &#x3D; Math.Sqrt(a * a - b * b) &#x2F; b;</span><br><span class="line">c &#x3D; a * a &#x2F; b;</span><br><span class="line">m[0] &#x3D; a * (1 - e1 * e1);</span><br><span class="line">m[1] &#x3D; 3 * (e1 * e1 * m[0]) &#x2F; 2.0;</span><br><span class="line">m[2] &#x3D; 5 * (e1 * e1 * m[1]) &#x2F; 4.0;</span><br><span class="line">m[3] &#x3D; 7 * (e1 * e1 * m[2]) &#x2F; 6.0;</span><br><span class="line">m[4] &#x3D; 9 * (e1 * e1 * m[3]) &#x2F; 8.0;</span><br><span class="line">n[0] &#x3D; m[0] + m[1] &#x2F; 2 + 3 * m[2] &#x2F; 8 + 5 * m[3] &#x2F; 16 + 35 * m[4] &#x2F; 128;</span><br><span class="line">n[1] &#x3D; m[1] &#x2F; 2 + m[2] &#x2F; 2 + 15 * m[3] &#x2F; 32 + 7 * m[4] &#x2F; 16;</span><br><span class="line">n[2] &#x3D; m[2] &#x2F; 8 + 3 * m[3] &#x2F; 16 + 7 * m[4] &#x2F; 32;</span><br><span class="line">n[3] &#x3D; m[3] &#x2F; 32 + m[4] &#x2F; 16;</span><br><span class="line">n[4] &#x3D; m[4] &#x2F; 128;</span><br><span class="line">X &#x3D; n[0] * B - n[1] &#x2F; 2 * Math.Sin(B * 2) + n[2] &#x2F; 4 * Math.Sin(B * 4) - n[3] &#x2F; 6 * Math.Sin(B * 6) + n[4] &#x2F; 8 * Math.Sin(B * 8);</span><br><span class="line">&#x2F;&#x2F;X &#x3D; n[0] * B - Math.Sin(B) * Math.Cos(B) * ((n[1] - n[2] + n[3]) + (2 * n[2] - (16 * n[3] &#x2F; 3.0)) * Math.Sin(B) * Math.Sin(B) + 16 * n[3] * Math.Pow(Math.Sin(B), 4) &#x2F; 3.0);</span><br><span class="line">l &#x3D; L - L0;&#x2F;&#x2F;弧度 ruo无用</span><br><span class="line">ita &#x3D; e2 * Math.Cos(B);</span><br><span class="line">sb &#x3D; Math.Sin(B);</span><br><span class="line">cb &#x3D; Math.Cos(B);</span><br><span class="line">W &#x3D; Math.Sqrt(1 - e1 * e1 * sb * sb);</span><br><span class="line">N &#x3D; a &#x2F; W;</span><br><span class="line">t &#x3D; Math.Tan(B);</span><br><span class="line">ruo &#x3D; (180 &#x2F; Math.PI) * 3600;</span><br><span class="line">x &#x3D; (X + N * sb * cb * l * l &#x2F; 2 + N * sb * cb * cb * cb * (5 - t * t + 9 * ita * ita + 4 * ita * ita * ita * ita) * l * l * l * l &#x2F; 24 + N * sb * cb * cb * cb * cb * cb * (61 - 58 * t * t + t * t * t * t) * l * l * l * l * l * l &#x2F; 720);</span><br><span class="line">y &#x3D; (N * cb * l + N * cb * cb * cb * (1 - t * t + ita * ita) * l * l * l &#x2F; 6 + N * cb * cb * cb * cb * cb * (5 - 18 * t * t + t * t * t * t + 14 * ita * ita - 58 * ita * ita * t * t) * l * l * l * l * l &#x2F; 120);</span><br><span class="line">y &#x3D; y + 500000;</span><br></pre></td></tr></table></figure>
+
+<p>​    6)转为独立坐标系（平面四参数转换模型）</p>
+<p><img src="https://raw.githubusercontent.com/xcsf/blog-figure-bed/master/XY2%E7%8B%AC%E7%AB%8B.png" alt="XY2独立"></p>
+<p>​    X0与Y0为坐标平移量，cos α，sin α 为坐标旋转因子，m为缩放因子。x1、y1为上一步的到的高斯投影面下的坐标；</p>
+<p>​    需要已有的地方坐标和高斯平面坐标采用坐标相似变换求其转换参数。</p>
+<p>​    具体看另一个仓库中的脚本工具，已经基于arcpy脚本实现 最新的深圳独立坐标与84坐标的互转。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/%E5%9D%90%E6%A0%87/" rel="tag"># 坐标</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/2020/06/12/WebGL%E5%8A%A0%E8%BD%BD%E7%BA%B9%E7%90%86/" rel="prev" title="WebGL加载纹理">
+      <i class="fa fa-chevron-left"></i> WebGL加载纹理
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2020/06/12/WebGL%E9%AB%98%E7%BA%A7%E6%8A%80%E6%9C%AF/" rel="next" title="WebGL高级技术">
+      WebGL高级技术 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、相关概念"><span class="nav-number">1.</span> <span class="nav-text">一、相关概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、转换方法"><span class="nav-number">2.</span> <span class="nav-text">二、转换方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-已知WGS–84大地坐标（BLH）-单位：度-分秒"><span class="nav-number">2.0.1.</span> <span class="nav-text">1.已知WGS–84大地坐标（BLH）(单位：度.分秒)</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="xcsf"
+      src="/blog/uploads/43439835.png">
+  <p class="site-author-name" itemprop="name">xcsf</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/xcsf" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xcsf" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">xcsf</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/pisces.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
